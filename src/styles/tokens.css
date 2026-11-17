@@ -1,0 +1,55 @@
+/*
+  Design tokens. One source of truth for colour, type and spacing.
+  The site is dark only by decision (see PLAN.md, section 2).
+  Shape rule: every corner is sharp (radius 0). No exceptions.
+*/
+
+:root {
+  /* Neutrals: one cool-grey family, never pure black or pure white */
+  --bg: #0a0b0d;
+  --surface: #111317;
+  --line: #23262d;
+  --dim: #5a5f68;
+  --muted: #8b9099;
+  --text: #e9eaec;
+
+  /* Accent candidates. --accent is the one the site uses. */
+  --accent-amber: #ffb020;
+  --accent-green: #3ddc84;
+  --accent-blue: #58a6ff;
+  --accent: var(--accent-amber);
+  --on-accent: #0a0b0d;
+
+  /* Type scale, fluid between 360px and 1440px viewports */
+  --step-display: clamp(3rem, 1.2rem + 8vw, 8.5rem);
+  --step-h1: clamp(2.25rem, 1.4rem + 3.8vw, 4.5rem);
+  --step-h2: clamp(1.5rem, 1.15rem + 1.6vw, 2.5rem);
+  --step-body: 1.0625rem;
+  --step-small: 0.875rem;
+  --step-label: 0.75rem;
+
+  /* Layout */
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+  --nav-h: 4rem;
+
+  /* Layers. Use these names, never raw z-index numbers. */
+  --z-canvas: 0;
+  --z-content: 10;
+  --z-rail: 20;
+  --z-nav: 30;
+  --z-cursor: 40;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Scoped accent overrides, used by the specimen page and the config switch */
+[data-accent="amber"] {
+  --accent: var(--accent-amber);
+}
+[data-accent="green"] {
+  --accent: var(--accent-green);
+}
+[data-accent="blue"] {
+  --accent: var(--accent-blue);
+}

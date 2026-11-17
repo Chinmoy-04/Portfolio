@@ -1,0 +1,244 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { domainLabels, type Project } from "@/content/projects";
+
+type Props = {
+  projects: Project[];
+  /** /work and print: every row open, no toggling. */
+  expandAll?: boolean;
+};
+
+/*
+  Numbered project rows that expand in place. One row open at a time.
+  #p-<slug> in the URL opens that row and scrolls to it, which is where the
+  hero chapter links point.
+*/
+export function ProjectList({ projects, expandAll = false }: Props) {
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
+
+  const openFromHash = useCallback(() => {
+    const match = window.location.hash.match(/^#p-(.+)$/);
+    if (!match) return;
+    const slug = decodeURIComponent(match[1]);
+    if (!projects.some((p) => p.slug === slug)) return;
+    setOpenSlug(slug);
+    document.getElementById(`p-${slug}`)?.scrollIntoView({ block: "start" });
+  }, [projects]);
+
+  useEffect(() => {
+    if (expandAll) return;
+    // Read the hash once the first frame has painted, then follow changes.
+    const frame = requestAnimationFrame(openFromHash);
+    window.addEventListener("hashchange", openFromHash);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("hashchange", openFromHash);
+    };
+  }, [expandAll, openFromHash]);
+
+  const toggle = (slug: string) => {
+    const next = openSlug === slug ? null : slug;
+    setOpenSlug(next);
+    // Keep the URL shareable without triggering a jump.
+    const url = next ? `#p-${next}` : `${window.location.pathname}${window.location.search}`;
+    window.history.replaceState(null, "", url);
+  };
+
+  return (
+    <ol className="border-line border-b">
+      {projects.map((project, index) => (
+        <ProjectRow
+          key={project.slug}
+          project={project}
+          index={index}
+          open={expandAll || openSlug === project.slug}
+          toggleable={!expandAll}
+          onToggle={() => toggle(project.slug)}
+        />
+      ))}
+    </ol>
+  );
+}
+
+function ProjectRow({
+  project,
+  index,
+  open,
+  toggleable,
+  onToggle,
+}: {
+  project: Project;
+  index: number;
+  open: boolean;
+  toggleable: boolean;
+  onToggle: () => void;
+}) {
+  const panelId = `panel-${project.slug}`;
+  const number = String(index + 1).padStart(2, "0");
+
+  const heading = (
+    <>
+      <span className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <span className="type-h2 group-hover:text-accent transition-colors duration-200">
+          {project.name}
+        </span>
+        <span className="type-label text-accent">{domainLabels[project.domain]}</span>
+        <span className="type-label text-dim">{project.year}</span>
+      </span>
+      <span className="text-muted mt-2 block max-w-[62ch]">{project.oneLine}</span>
+    </>
+  );
+
+  return (
+    <li id={`p-${project.slug}`} className="project-row border-line scroll-mt-28 border-t">
+      <div className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-3 py-6 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:gap-x-4 lg:py-7">
+        <span className="type-mono text-dim pt-[0.35em]" aria-hidden="true">
+          {number}
+        </span>
+
+        {toggleable ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={onToggle}
+            className="group text-left"
+          >
+            {heading}
+          </button>
+        ) : (
+          <div>{heading}</div>
+        )}
+
+        <div className="col-start-2 mt-4 flex items-center gap-5 sm:col-start-3 sm:row-start-1 sm:mt-1 sm:items-start">
+          <QuickLinks project={project} />
+          {toggleable && (
+            <button
+              type="button"
+              aria-label={`${open ? "Collapse" : "Expand"} ${project.name}`}
+              aria-expanded={open}
+              aria-controls={panelId}
+              onClick={onToggle}
+              className="border-line text-muted hover:border-accent hover:text-accent no-print grid size-8 shrink-0 place-items-center border transition-colors"
+            >
+              <span
+                aria-hidden="true"
+                className={`font-mono text-lg leading-none transition-transform duration-300 ${
+                  open ? "rotate-45" : ""
+                }`}
+              >
+                +
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div
+        id={panelId}
+        role="region"
+        aria-label={`${project.name} details`}
+        data-open={open}
+        inert={!open}
+        className="project-panel grid"
+      >
+        <div className="overflow-hidden">
+          <ProjectDetails project={project} />
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function QuickLinks({ project }: { project: Project }) {
+  const { repo, demo } = project.links;
+  return (
+    <span className="type-label no-print flex gap-4">
+      {demo && (
+        <a className="link" href={demo} target="_blank" rel="noreferrer">
+          Live demo <span aria-hidden="true">&#8599;</span>
+        </a>
+      )}
+      {repo && (
+        <a className="link" href={repo} target="_blank" rel="noreferrer">
+          Code <span aria-hidden="true">&#8599;</span>
+        </a>
+      )}
+    </span>
+  );
+}
+
+function ProjectDetails({ project }: { project: Project }) {
+  const { repo, demo, paper } = project.links;
+
+  return (
+    <div className="grid gap-8 pb-10 pl-[calc(2.25rem+0.75rem)] sm:pl-[calc(3rem+1rem)] lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-12">
+      <div>
+        <p className="max-w-[62ch]">{project.summary}</p>
+
+        {project.highlights && project.highlights.length > 0 && (
+          <ul className="mt-5 flex max-w-[62ch] flex-col gap-2">
+            {project.highlights.map((h) => (
+              <li key={h} className="text-muted grid grid-cols-[1rem_1fr]">
+                <span aria-hidden="true" className="text-accent font-mono">
+                  &gt;
+                </span>
+                {h}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="mt-7 flex flex-wrap gap-3">
+          {demo && (
+            <a className="btn btn-primary" href={demo} target="_blank" rel="noreferrer">
+              Live demo
+            </a>
+          )}
+          {repo && (
+            <a className="btn btn-ghost" href={repo} target="_blank" rel="noreferrer">
+              Code
+            </a>
+          )}
+          {paper && (
+            <a className="btn btn-ghost" href={paper} target="_blank" rel="noreferrer">
+              Paper
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        {project.metrics && project.metrics.length > 0 && (
+          <dl className="grid grid-cols-2 gap-4">
+            {project.metrics.map((m) => (
+              <div key={m.label}>
+                <dt className="type-label text-dim">{m.label}</dt>
+                <dd className="text-accent mt-1 font-mono text-xl">{m.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        <div>
+          <p className="type-label text-dim">Built with</p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {project.stack.map((item) => (
+              <li key={item} className="type-label border-line text-muted border px-2 py-1">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {project.role && (
+          <div>
+            <p className="type-label text-dim">Role</p>
+            <p className="text-muted mt-2 text-sm">{project.role}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

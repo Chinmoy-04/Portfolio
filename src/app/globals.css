@@ -1,0 +1,224 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-dim: var(--dim);
+  --color-muted: var(--muted);
+  --color-text: var(--text);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+
+  --font-display: var(--font-archivo), "Arial Black", system-ui, sans-serif;
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "Cascadia Mono", monospace;
+
+  --text-display: var(--step-display);
+  --text-h1: var(--step-h1);
+  --text-h2: var(--step-h2);
+  --text-body: var(--step-body);
+  --text-small: var(--step-small);
+  --text-label: var(--step-label);
+
+  --ease-out: var(--ease-out);
+}
+
+html {
+  background: var(--bg);
+  color-scheme: dark;
+  scroll-padding-top: calc(var(--nav-h) + 1rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--step-body);
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Heavy, wide grotesque for headlines */
+.type-display {
+  font-family: var(--font-display);
+  font-size: var(--step-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.type-h1 {
+  font-family: var(--font-display);
+  font-size: var(--step-h1);
+  font-weight: 800;
+  font-stretch: 115%;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.type-h2 {
+  font-family: var(--font-display);
+  font-size: var(--step-h2);
+  font-weight: 700;
+  font-stretch: 110%;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Monospace label: metadata, tags, readouts */
+.type-label {
+  font-family: var(--font-mono);
+  font-size: var(--step-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.type-mono {
+  font-family: var(--font-mono);
+  font-size: var(--step-small);
+}
+
+/* Hero name: sized so "Jyoti Bora" fits one line at every width */
+.hero-name {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 0.6rem + 10.5vw, 10rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+/* Top bar */
+.nav-bar {
+  z-index: var(--z-nav);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+}
+
+/* Buttons. Sharp corners, one line, press feedback. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--step-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out),
+    color 0.2s var(--ease-out),
+    transform 0.1s var(--ease-out);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn-lg {
+  padding: 0.9rem 1.4rem;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--accent) 85%, white);
+}
+.btn-ghost {
+  border-color: var(--line);
+  color: var(--text);
+}
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Text links */
+.link {
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 0.3em;
+  transition:
+    color 0.2s var(--ease-out),
+    text-decoration-color 0.2s var(--ease-out);
+}
+.link:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+/* Project row panel: expands by animating its grid track */
+.project-panel {
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s var(--ease-out);
+}
+.project-panel[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+@media print {
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --line: #cccccc;
+    --dim: #555555;
+    --muted: #333333;
+    --text: #111111;
+    --accent: #111111;
+  }
+  .nav-bar,
+  .no-print {
+    display: none !important;
+  }
+  .project-panel {
+    grid-template-rows: 1fr !important;
+  }
+  .project-row {
+    break-inside: avoid;
+  }
+  main {
+    padding-top: 0 !important;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: var(--dim);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

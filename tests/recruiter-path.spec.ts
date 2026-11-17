@@ -1,0 +1,80 @@
+import { expect, test } from "@playwright/test";
+
+test("View projects in the top bar reaches the project list", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Primary" });
+  await nav.getByRole("link", { name: "View projects" }).click();
+  await expect(page).toHaveURL(/#projects$/);
+  await expect(page.getByRole("heading", { name: "Projects", level: 2 })).toBeInViewport();
+});
+
+test("a project row expands in place and collapses again", async ({ page }) => {
+  await page.goto("/#projects");
+  const toggle = page.getByRole("button", { name: /SubspaceAD/ }).first();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  const panel = page.getByRole("region", { name: "SubspaceAD details" });
+  await expect(panel.getByRole("link", { name: "Live demo" })).toBeVisible();
+  await expect(page).toHaveURL(/#p-subspacead$/);
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+});
+
+test("only one row is open at a time", async ({ page }) => {
+  await page.goto("/#projects");
+  await page
+    .getByRole("button", { name: /^ShopCrew/ })
+    .first()
+    .click();
+  await page
+    .getByRole("button", { name: /^PaintOps/ })
+    .first()
+    .click();
+  await expect(page.getByRole("button", { name: /^ShopCrew/ }).first()).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  await expect(page.getByRole("button", { name: /^PaintOps/ }).first()).toHaveAttribute(
+    "aria-expanded",
+    "true",
+  );
+});
+
+test("a #p-<slug> link opens that project", async ({ page }) => {
+  await page.goto("/#p-german-air");
+  const toggle = page.getByRole("button", { name: /^German Air/ }).first();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(toggle).toBeInViewport();
+});
+
+test("project links point at the real repositories", async ({ page }) => {
+  await page.goto("/work");
+  const panel = page.getByRole("region", { name: "SubspaceAD details" });
+  await expect(panel.getByRole("link", { name: "Code" })).toHaveAttribute(
+    "href",
+    "https://github.com/Chinmoy-04/Subspacead",
+  );
+});
+
+test("/work shows every project open", async ({ page }) => {
+  await page.goto("/work");
+  await expect(page.getByRole("heading", { name: "Chinmoy Jyoti Bora", level: 1 })).toBeVisible();
+  const regions = page.getByRole("region", { name: / details$/ });
+  await expect(regions).toHaveCount(7);
+  for (const region of await regions.all()) {
+    await expect(region).toHaveAttribute("data-open", "true");
+  }
+});
+
+test("no page scrolls sideways", async ({ page }) => {
+  for (const path of ["/", "/work"]) {
+    await page.goto(path);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow, `${path} overflows horizontally`).toBeLessThanOrEqual(0);
+  }
+});
