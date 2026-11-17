@@ -153,6 +153,8 @@ export const fragmentShader = /* glsl */ `
 uniform vec3 uInk;
 uniform vec3 uAccent;
 uniform float uOpacity;
+// 1 when feeding the ASCII pass: R carries brightness, G accent brightness.
+uniform float uDataMode;
 
 varying float vAccent;
 varying float vAlpha;
@@ -161,6 +163,7 @@ void main() {
   float d = length(gl_PointCoord - 0.5);
   if (d > 0.5) discard;
   float a = smoothstep(0.5, 0.1, d) * vAlpha * uOpacity;
-  gl_FragColor = vec4(mix(uInk, uAccent, vAccent), a);
+  vec3 colour = uDataMode > 0.5 ? vec3(1.0, vAccent, 0.0) : mix(uInk, uAccent, vAccent);
+  gl_FragColor = vec4(colour, a);
 }
 `;

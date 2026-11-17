@@ -10,6 +10,7 @@ import {
   ShaderMaterial,
   WebGLRenderer,
 } from "three";
+import { AsciiPass, type AsciiSettings } from "../ascii/AsciiPass";
 import { FrameMonitor, lowerTier, TIERS, type Tier } from "../quality";
 import { makeRng, type Cloud } from "./sample";
 import { fragmentShader, vertexShader } from "./shaders";
@@ -33,6 +34,18 @@ export type ParticleFieldOptions = {
   accent: string;
   /** Called about twice a second */
   onStats?: (stats: ParticleStats) => void;
+  /** Print through the ASCII pass. Omit to draw plain points. */
+  ascii?: AsciiSettings;
+  /**
+   * Per emblem, whether it prints through the ASCII pass when the pass is on.
+   * Missing entries print. Text emblems should not: thin letter strokes break
+   * up into unreadable glyphs, so they stay as plain points.
+   */
+  asciiEmblems?: boolean[];
+  /** Font for the ASCII glyphs. It must be loaded before the field is created. */
+  asciiFont?: string;
+  /** Let the pointer pull the ASCII image. Leave off for touch and reduced motion. */
+  pointer?: boolean;
 };
 
 const CAMERA_Z = 6;
@@ -57,6 +70,9 @@ export class ParticleField {
   private lastStats = 0;
   private drops = 0;
   private tier: Tier;
+  private ascii: AsciiPass | null = null;
+  private emblem = 0;
+  private lastFrame = 0;
   private readonly capacity: number;
   private readonly rowsPerEmblem: number;
 
@@ -114,6 +130,7 @@ export class ParticleField {
         uInk: { value: raw(options.ink) },
         uAccent: { value: raw(options.accent) },
         uOpacity: { value: 0.55 },
+        uDataMode: { value: 0 },
       },
     });
 
@@ -122,7 +139,9 @@ export class ParticleField {
     this.scene.add(this.points);
 
     this.monitor = new FrameMonitor(TIERS[tier].minFps, () => this.dropTier());
+    if (options.ascii) this.setAscii(options.ascii);
     this.applyTier();
+    if (options.pointer) window.addEventListener("pointermove", this.onPointer);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
@@ -136,16 +155,48 @@ export class ParticleField {
   }
 
   setEmblem(index: number) {
+    this.emblem = index;
     this.material.uniforms.uRowOffset.value = index * this.rowsPerEmblem;
+    this.material.uniforms.uDataMode.value = this.printing ? 1 : 0;
+    this.applyTier();
+  }
+
+  /** Switches the ASCII pass on with these settings, or off with null. */
+  setAscii(settings: AsciiSettings | null) {
+    if (settings && this.ascii) {
+      this.ascii.setSettings(settings);
+      return;
+    }
+    if (settings) {
+      this.ascii = new AsciiPass(this.renderer, {
+        settings,
+        ink: this.options.ink,
+        accent: this.options.accent,
+        fontFamily: this.options.asciiFont ?? "monospace",
+      });
+    } else {
+      this.ascii?.dispose();
+      this.ascii = null;
+    }
+    this.material.uniforms.uDataMode.value = this.printing ? 1 : 0;
+    this.applyTier();
+    this.resize();
   }
 
   dispose() {
     cancelAnimationFrame(this.frame);
+    window.removeEventListener("pointermove", this.onPointer);
+    this.ascii?.dispose();
     this.resizeObserver.disconnect();
     this.geometry.dispose();
     this.material.uniforms.uTargets.value.dispose();
     this.material.dispose();
     this.renderer.dispose();
+  }
+
+  /** True when the current emblem goes through the ASCII pass. */
+  private get printing() {
+    return this.ascii !== null && (this.options.asciiEmblems?.[this.emblem] ?? true);
   }
 
   private dropTier() {
@@ -166,8 +217,10 @@ export class ParticleField {
     const dpr = Math.min(window.devicePixelRatio || 1, settings.maxDpr);
     this.renderer.setPixelRatio(dpr);
     // Fewer particles get bigger points, so the emblem keeps its weight.
+    // The ASCII pass draws the scene at CSS resolution, so no pixel ratio there.
     const density = Math.sqrt(TIERS.high.particles / count);
-    this.material.uniforms.uPointSize.value = BASE_POINT_PX * dpr * CAMERA_Z * density;
+    const pointDpr = this.printing ? 1 : dpr;
+    this.material.uniforms.uPointSize.value = BASE_POINT_PX * pointDpr * CAMERA_Z * density;
   }
 
   private resize() {
@@ -178,12 +231,29 @@ export class ParticleField {
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
+    this.ascii?.resize(width, height, this.renderer.getPixelRatio());
   }
+
+  private onPointer = (e: PointerEvent) => {
+    if (!this.ascii) return;
+    if (e.pointerType === "touch") {
+      this.ascii.setPointer(null);
+      return;
+    }
+    const rect = this.options.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
+    this.ascii.setPointer(inside ? { x, y } : null);
+  };
 
   private loop = (now: number) => {
     this.frame = requestAnimationFrame(this.loop);
+    const dt = this.lastFrame ? Math.min((now - this.lastFrame) / 1000, 0.1) : 0;
+    this.lastFrame = now;
     this.material.uniforms.uTime.value = (now - this.start) / 1000;
-    this.renderer.render(this.scene, this.camera);
+    if (this.printing) this.ascii!.render(this.scene, this.camera, dt);
+    else this.renderer.render(this.scene, this.camera);
     this.monitor.tick(now);
 
     if (this.options.onStats && now - this.lastStats > 500) {

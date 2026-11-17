@@ -422,3 +422,4 @@ Needed by Phase 8:
 - Whether the photo works in ASCII (decided in Phase 1 by trying it).
 - The default opening (decided in Phase 6 by comparing all three).
 - Custom domain (later; no code change needed).
+- Shape-aware glyph matching (7.2, Step B). Phase 4 ships the luminance ramp only; the frame budget is judged at the Phase 4 checkpoint before taking this on.
