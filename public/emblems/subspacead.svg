@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!--
+    SubspaceAD emblem: a hex nut seen face on, with one flagged patch.
+    The particle engine samples filled shapes only, so the chamfer line is a
+    thin gap cut into the face (even-odd fill), not a stroke.
+    The element with id="anomaly" is the accent region (projects.ts).
+  -->
+  <path
+    fill="#e9eaec"
+    fill-rule="evenodd"
+    d="M190 100 L145 177.94 L55 177.94 L10 100 L55 22.06 L145 22.06 Z
+       M176 100 A76 76 0 1 0 24 100 A76 76 0 1 0 176 100 Z
+       M172 100 A72 72 0 1 0 28 100 A72 72 0 1 0 172 100 Z
+       M136 100 A36 36 0 1 0 64 100 A36 36 0 1 0 136 100 Z"
+  />
+  <path
+    id="anomaly"
+    fill="#ffb020"
+    d="M131 57 C137 51 147 53 151 59 C155 64 153 70 149 73 C145 77 139 78 134 75 C129 72 126 62 131 57 Z"
+  />
+</svg>
