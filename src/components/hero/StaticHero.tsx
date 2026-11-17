@@ -12,6 +12,7 @@ export function StaticHero() {
   return (
     <section
       id="top"
+      data-cursor="field"
       aria-label="Introduction"
       className="relative mx-auto flex min-h-[100dvh] max-w-[1400px] flex-col justify-end overflow-hidden px-[var(--gutter)] pt-[calc(var(--nav-h)+2rem)] pb-12 lg:pb-16"
     >

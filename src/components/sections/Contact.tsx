@@ -5,7 +5,7 @@ export function Contact() {
     <section
       id="contact"
       aria-labelledby="contact-title"
-      className="border-line mx-auto mt-32 max-w-[1400px] scroll-mt-28 border-t px-[var(--gutter)] pt-16 pb-20 lg:mt-44 lg:pt-24"
+      className="border-line mx-auto mt-32 max-w-[1400px] border-t px-[var(--gutter)] pt-16 pb-20 lg:mt-44 lg:pt-24"
     >
       <h2 id="contact-title" className="type-h1">
         Contact

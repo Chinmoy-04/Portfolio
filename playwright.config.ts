@@ -8,6 +8,8 @@ export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
   reporter: "list",
+  // Each page runs a WebGL field; give assertions room when many windows share the GPU.
+  expect: { timeout: 10_000 },
   use: {
     baseURL: "http://localhost:3000",
     channel: "msedge",

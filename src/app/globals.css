@@ -55,6 +55,71 @@ body {
   outline-offset: 3px;
 }
 
+/* Custom cursor (src/components/ui/Cursor.tsx). Hidden until the pointer moves. */
+.has-custom-cursor,
+.has-custom-cursor * {
+  cursor: none !important;
+}
+.has-custom-cursor.cursor-native,
+.has-custom-cursor.cursor-native * {
+  cursor: auto !important;
+}
+.cursor-native .cursor-layer {
+  display: none;
+}
+.cursor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+}
+.cursor-dot,
+.cursor-frame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-out);
+  will-change: transform;
+}
+.cursor-dot > span,
+.cursor-frame > span {
+  position: absolute;
+  display: block;
+  translate: -50% -50%;
+}
+.cursor-dot > span {
+  width: 6px;
+  height: 6px;
+  background: var(--text);
+  mix-blend-mode: difference;
+}
+.cursor-frame > span {
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--text) 45%, transparent);
+  transition:
+    width 0.25s var(--ease-out),
+    height 0.25s var(--ease-out),
+    border-color 0.25s var(--ease-out),
+    background-color 0.25s var(--ease-out);
+}
+.cursor-frame[data-state="link"] > span {
+  width: 44px;
+  height: 44px;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.cursor-frame[data-state="field"] > span {
+  width: 72px;
+  height: 72px;
+  border-color: color-mix(in srgb, var(--text) 70%, transparent);
+}
+.cursor-frame[data-press="true"] > span {
+  width: 18px;
+  height: 18px;
+}
+
 /* Heavy, wide grotesque for headlines */
 .type-display {
   font-family: var(--font-display);

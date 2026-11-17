@@ -2,12 +2,12 @@ import { profile } from "@/content/profile";
 
 export function Stack() {
   return (
-    <section id="stack" aria-labelledby="stack-title" className="scroll-mt-28 pt-28 lg:pt-36">
-      <h2 id="stack-title" className="type-h1">
+    <section id="stack" aria-labelledby="stack-title" className="pt-28 lg:pt-36">
+      <h2 id="stack-title" data-field-clear className="type-h1 w-fit">
         Stack
       </h2>
 
-      <div className="mt-10 grid gap-px bg-[var(--line)] sm:grid-cols-2">
+      <div data-field-clear className="mt-10 grid gap-px bg-[var(--line)] sm:grid-cols-2">
         {profile.stack.map((group) => (
           <div
             key={group.group}

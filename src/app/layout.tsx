@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
+import { Cursor } from "@/components/ui/Cursor";
 import { profile } from "@/content/profile";
 import { siteConfig } from "@/content/site.config";
 import "./globals.css";
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-accent={siteConfig.accent}
       className={`${archivo.variable} ${jetbrains.variable} antialiased`}
     >
-      <body className="min-h-[100dvh]">{children}</body>
+      <body className="min-h-[100dvh]">
+        {children}
+        {siteConfig.features.customCursor && <Cursor />}
+      </body>
     </html>
   );
 }

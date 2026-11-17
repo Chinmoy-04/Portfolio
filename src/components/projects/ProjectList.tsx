@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { domainLabels, type Project } from "@/content/projects";
+import { scrollToElement } from "@/lib/scroll";
 
 type Props = {
   projects: Project[];
@@ -23,7 +24,8 @@ export function ProjectList({ projects, expandAll = false }: Props) {
     const slug = decodeURIComponent(match[1]);
     if (!projects.some((p) => p.slug === slug)) return;
     setOpenSlug(slug);
-    document.getElementById(`p-${slug}`)?.scrollIntoView({ block: "start" });
+    const row = document.getElementById(`p-${slug}`);
+    if (row) scrollToElement(row);
   }, [projects]);
 
   useEffect(() => {
@@ -91,8 +93,11 @@ function ProjectRow({
   );
 
   return (
-    <li id={`p-${project.slug}`} className="project-row border-line scroll-mt-28 border-t">
-      <div className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-3 py-6 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:gap-x-4 lg:py-7">
+    <li id={`p-${project.slug}`} className="project-row border-line border-t">
+      <div
+        data-field-clear
+        className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-3 py-6 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:gap-x-4 lg:py-7"
+      >
         <span className="type-mono text-dim pt-[0.35em]" aria-hidden="true">
           {number}
         </span>
@@ -173,7 +178,10 @@ function ProjectDetails({ project }: { project: Project }) {
   const { repo, demo, paper } = project.links;
 
   return (
-    <div className="grid gap-8 pb-10 pl-[calc(2.25rem+0.75rem)] sm:pl-[calc(3rem+1rem)] lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-12">
+    <div
+      data-field-clear
+      className="grid gap-8 pb-10 pl-[calc(2.25rem+0.75rem)] sm:pl-[calc(3rem+1rem)] lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-12"
+    >
       <div>
         <p className="max-w-[62ch]">{project.summary}</p>
 

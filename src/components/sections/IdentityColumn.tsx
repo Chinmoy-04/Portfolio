@@ -7,7 +7,10 @@ import { SectionNav } from "./SectionNav";
 */
 export function IdentityColumn() {
   return (
-    <aside className="hidden lg:sticky lg:top-[calc(var(--nav-h)+4rem)] lg:block lg:h-fit">
+    <aside
+      data-field-clear
+      className="hidden lg:sticky lg:top-[calc(var(--nav-h)+4rem)] lg:block lg:h-fit"
+    >
       <p className="font-display text-3xl leading-none font-extrabold tracking-tight [font-stretch:115%]">
         {profile.name}
       </p>

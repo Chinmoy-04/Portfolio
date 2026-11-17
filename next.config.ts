@@ -1,17 +1,12 @@
 import type { NextConfig } from "next";
 
+/*
+  Tailwind runs through PostCSS (postcss.config.mjs). The @tailwindcss/turbopack
+  loader this template shipped with kept a stale compile of globals.css in dev.
+*/
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
-  },
 };
 
 export default nextConfig;
