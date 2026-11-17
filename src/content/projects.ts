@@ -142,12 +142,29 @@ export const projects: Project[] = [
   {
     slug: "lightrag-local",
     name: "LightRAG Local",
-    oneLine: "Bootstrap a local LightRAG knowledge graph that runs entirely on Ollama.",
+    oneLine:
+      "The LightRAG graph-RAG paper reproduced on an 8 GB laptop GPU, with four retrieval modes compared side by side.",
     year: 2026,
     domain: "rag",
-    summary: "Bootstraps a local LightRAG knowledge graph with Ollama.",
-    stack: ["LightRAG", "Ollama", "JavaScript"],
-    links: { repo: "https://github.com/Chinmoy-04/lightrag-local" },
+    summary:
+      "A local reproduction of the LightRAG paper on native Windows. An 8B model on Ollama builds a knowledge graph from about 30 recent arXiv papers on RAG, and a React UI lets you chat in each retrieval mode, explore the graph and compare the modes with an LLM judge. It is a research tool for seeing where a small local setup falls short of the paper.",
+    highlights: [
+      "Four query modes (naive, local, global, hybrid) compared on one prompt, scored 1 to 10 on the paper's axes: comprehensiveness, diversity and empowerment.",
+      "Resumable indexing with a run lock and an LLM cache, tuned for 8 GB of VRAM; a full index took about 20 to 25 hours.",
+      "Honest finding: naive RAG beat the graph modes on this corpus, most likely because an 8B model extracted the graph.",
+      "Answering and extraction models are configured separately, so a cloud model can answer while the graph is built locally.",
+    ],
+    metrics: [
+      { label: "Graph", value: "6.5k nodes, 6.9k edges" },
+      { label: "Corpus", value: "~30 arXiv papers" },
+      { label: "Global query", value: "26 min to 4 s" },
+      { label: "GPU", value: "8 GB VRAM" },
+    ],
+    stack: ["Python", "LightRAG", "Ollama", "Llama 3.1 8B", "NetworkX", "FastAPI", "React"],
+    links: {
+      repo: "https://github.com/Chinmoy-04/lightrag-local",
+      paper: "https://arxiv.org/abs/2410.05779",
+    },
     hero: {
       emblem: { kind: "generator", id: "knowledge-graph" },
       accentRegion: "hub",

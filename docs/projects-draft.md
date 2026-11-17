@@ -76,11 +76,14 @@ Order below is the order on the site.
 
 - **Slug:** `lightrag-local`
 - **Domain:** rag
-- **One line:** Bootstrap a local LightRAG knowledge graph that runs entirely on Ollama.
-- **Summary:** **CONFIRM**. The repository description is one line; I need two or three sentences on what it sets up and why it is useful.
-- **Stack:** LightRAG, Ollama, JavaScript
+- **One line:** The LightRAG graph-RAG paper reproduced on an 8 GB laptop GPU, with four retrieval modes compared side by side.
+- **Summary:** A local reproduction of the LightRAG paper on native Windows. An 8B model on Ollama builds a knowledge graph from about 30 recent arXiv papers on RAG, and a React UI lets you chat in each retrieval mode, explore the graph and compare the modes with an LLM judge. It is a research tool for seeing where a small local setup falls short of the paper.
+- **Highlights:** four query modes compared and judged on the paper's axes; resumable, locked, cached indexing tuned for 8 GB VRAM (20 to 25 h full run); naive RAG beat the graph modes, likely because of 8B extraction; answer and extraction models configured separately.
+- **Metrics:** 6.5k nodes and 6.9k edges; ~30 arXiv papers; global query 26 min to 4 s after switching the answer model to DeepSeek; 8 GB VRAM.
+- **Stack:** Python, LightRAG, Ollama, Llama 3.1 8B, NetworkX, FastAPI, React
 - **Repo:** https://github.com/Chinmoy-04/lightrag-local
-- **Demo:** none listed
+- **Paper:** https://arxiv.org/abs/2410.05779
+- **Demo:** none hosted (a 40-second video is in the repo)
 - **Hero emblem:** a knowledge graph of linked nodes
 - **Year:** 2026
 
