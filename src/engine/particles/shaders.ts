@@ -108,6 +108,8 @@ uniform float uSpread;
 uniform float uEmblemScale;
 uniform float uFlow;
 uniform float uPointSize;
+uniform vec3 uOffset;
+uniform float uRotation;
 
 attribute float aRand;
 
@@ -123,7 +125,12 @@ float easeInOutCubic(float t) {
 void main() {
   int i = gl_VertexID;
   vec4 target = texelFetch(uTargets, ivec2(i % uWidth, i / uWidth + uRowOffset), 0);
-  vec3 home = target.xyz * uEmblemScale;
+  // The emblem is scaled, turned about its vertical axis and placed. Chaos is not,
+  // so moving the emblem between chapters while in chaos is invisible.
+  vec3 local = target.xyz * uEmblemScale;
+  float rc = cos(uRotation);
+  float rs = sin(uRotation);
+  vec3 home = vec3(rc * local.x + rs * local.z, local.y, -rs * local.x + rc * local.z) + uOffset;
 
   // Chaos: the seed position carried along a slowly evolving flow field.
   vec3 seed = position;

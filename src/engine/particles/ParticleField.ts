@@ -8,6 +8,7 @@ import {
   Points,
   Scene,
   ShaderMaterial,
+  Vector3,
   WebGLRenderer,
 } from "three";
 import { AsciiPass, type AsciiSettings } from "../ascii/AsciiPass";
@@ -48,7 +49,18 @@ export type ParticleFieldOptions = {
   pointer?: boolean;
 };
 
+export type EmblemLayout = {
+  /** Emblem centre in scene units; the view spans viewExtent() either side of 0 */
+  x: number;
+  y: number;
+  /** Half the emblem's longer side, in scene units */
+  scale: number;
+  /** Turn about the vertical axis, radians */
+  rotation: number;
+};
+
 const CAMERA_Z = 6;
+const BASE_OPACITY = 0.55;
 /** Point diameter in CSS px at the high tier, before perspective */
 const BASE_POINT_PX = 1.6;
 
@@ -73,6 +85,9 @@ export class ParticleField {
   private ascii: AsciiPass | null = null;
   private emblem = 0;
   private lastFrame = 0;
+  private running = true;
+  /** False until the particle shader has compiled */
+  private ready = false;
   private readonly capacity: number;
   private readonly rowsPerEmblem: number;
 
@@ -129,7 +144,9 @@ export class ParticleField {
         uPointSize: { value: 1 },
         uInk: { value: raw(options.ink) },
         uAccent: { value: raw(options.accent) },
-        uOpacity: { value: 0.55 },
+        uOpacity: { value: BASE_OPACITY },
+        uOffset: { value: new Vector3() },
+        uRotation: { value: 0 },
         uDataMode: { value: 0 },
       },
     });
@@ -147,7 +164,19 @@ export class ParticleField {
     this.resizeObserver.observe(canvas);
     this.resize();
 
-    this.frame = requestAnimationFrame(this.loop);
+    // Compile the particle shader before the first frame, for the canvas and
+    // for the ASCII pass's target. Where the browser supports parallel
+    // compiling this happens off the main thread; otherwise the first render
+    // would block the page for about half a second.
+    Promise.all([
+      this.renderer.compileAsync(this.scene, this.camera),
+      this.ascii?.compile(this.scene, this.camera),
+    ])
+      .catch(() => undefined)
+      .then(() => {
+        this.ready = true;
+        if (this.running) this.frame = requestAnimationFrame(this.loop);
+      });
   }
 
   setProgress(progress: number) {
@@ -159,6 +188,37 @@ export class ParticleField {
     this.material.uniforms.uRowOffset.value = index * this.rowsPerEmblem;
     this.material.uniforms.uDataMode.value = this.printing ? 1 : 0;
     this.applyTier();
+  }
+
+  /** Places the emblem. Missing fields keep their current value. */
+  setLayout({ x, y, scale, rotation }: Partial<EmblemLayout>) {
+    const u = this.material.uniforms;
+    if (x !== undefined) u.uOffset.value.x = x;
+    if (y !== undefined) u.uOffset.value.y = y;
+    if (scale !== undefined) u.uEmblemScale.value = scale;
+    if (rotation !== undefined) u.uRotation.value = rotation;
+  }
+
+  /** Half the visible width and height at the emblem's depth, in scene units. */
+  viewExtent() {
+    const height = CAMERA_Z * Math.tan((this.camera.fov * Math.PI) / 360);
+    return { width: height * this.camera.aspect, height };
+  }
+
+  /** Scales particle brightness: 1 is normal, 0 is invisible. */
+  setOpacity(amount: number) {
+    this.material.uniforms.uOpacity.value = BASE_OPACITY * amount;
+  }
+
+  /** Stops or restarts the render loop, e.g. while the canvas is off screen. */
+  setRunning(running: boolean) {
+    if (running === this.running) return;
+    this.running = running;
+    cancelAnimationFrame(this.frame);
+    if (running && this.ready) {
+      this.lastFrame = 0;
+      this.frame = requestAnimationFrame(this.loop);
+    }
   }
 
   /** Switches the ASCII pass on with these settings, or off with null. */
@@ -184,6 +244,7 @@ export class ParticleField {
   }
 
   dispose() {
+    this.running = false;
     cancelAnimationFrame(this.frame);
     window.removeEventListener("pointermove", this.onPointer);
     this.ascii?.dispose();

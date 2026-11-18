@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- PaintOps: an SUV in side view, defect flagged on the rear door. Accent: #defect. -->
+  <path fill="#e9eaec" fill-rule="evenodd" d="M12 132 L12 104 C12 98 16 94 24 92 L44 88 L62 58 C64 54 68 52 74 52 L162 52 C170 52 176 56 178 62 L188 92 C190 96 190 100 190 106 L190 132 L170 132 A18 18 0 0 0 134 132 L70 132 A18 18 0 0 0 34 132 Z M66 86 L78 62 L106 62 L106 86 Z M112 62 L140 62 L140 86 L112 86 Z M146 62 L162 62 C166 62 168 64 170 68 L176 86 L146 86 Z" />
+  <path fill="#e9eaec" fill-rule="evenodd" d="M67 132 A15 15 0 1 0 37 132 A15 15 0 1 0 67 132 Z M57 132 A5 5 0 1 0 47 132 A5 5 0 1 0 57 132 Z M167 132 A15 15 0 1 0 137 132 A15 15 0 1 0 167 132 Z M157 132 A5 5 0 1 0 147 132 A5 5 0 1 0 157 132 Z" />
+  <g id="defect" fill="#ffb020" stroke="#ffb020">
+  <ellipse cx="126" cy="106" rx="11" ry="8" />
+  </g>
+</svg>

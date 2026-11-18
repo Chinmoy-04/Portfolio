@@ -184,11 +184,11 @@ Nothing else changes. Chapter count, scroll length, the progress rail and `/work
 |---|---|---|---|---|
 | 1 | SubspaceAD | An industrial part (a hex nut or bottle outline) | One patch glowing as the detected anomaly | SVG |
 | 2 | ShopCrew | A small agent graph of five linked nodes | One node pulsing, waiting for approval | generator |
-| 3 | PaintOps | A car body silhouette in side view | A flagged defect patch on a panel | SVG |
-| 4 | RAG Eval Engine | Stacked document pages collapsing into a score gauge | The gauge needle | generator |
-| 5 | Air Gesture Controller | A hand skeleton with 21 keypoints | The fingertip keypoints | generator |
+| 3 | PaintOps | A spray gun and its spray (chosen 18 Nov 2026; the car side view is kept as an option) | A blemish in the spray | SVG |
+| 4 | RAG Eval Engine | Document pages under a radar chart of five Ragas metrics (18 Nov 2026; the gauge is kept as an option) | The score polygon | generator |
+| 5 | Air Gesture Controller | An open palm inside a YOLO detection box (18 Nov 2026; the 21-keypoint skeleton is kept as an option) | The fingertips | SVG |
 | 6 | LightRAG Local | A knowledge graph of about thirty nodes with edges | The central hub node | generator |
-| 7 | German Air | The outline of Germany | A few of its 16 states shaded | SVG |
+| 7 | German Air | Germany as a hex-binned map (18 Nov 2026; the plain outline is kept as an option) | A few hex clusters flagged | SVG |
 
 The accent region in each emblem is the "signal" inside the noise, which ties all seven to the theme.
 

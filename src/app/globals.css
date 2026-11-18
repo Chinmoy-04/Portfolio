@@ -236,6 +236,42 @@ body {
   text-decoration-color: var(--accent);
 }
 
+/* Hero progress rail: one tick per chapter, the active one amber. Names show on hover and focus. */
+.rail-tick {
+  color: var(--muted);
+  transition: color 0.25s var(--ease-out);
+}
+.rail-tick:hover,
+.rail-tick:focus-visible,
+.rail-tick[aria-current] {
+  color: var(--accent);
+}
+.rail-bar {
+  display: block;
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  transition:
+    width 0.35s var(--ease-out),
+    height 0.35s var(--ease-out);
+}
+.rail-tick[aria-current] .rail-bar {
+  width: 36px;
+  height: 2px;
+}
+.rail-label {
+  opacity: 0;
+  translate: 6px 0;
+  transition:
+    opacity 0.25s var(--ease-out),
+    translate 0.25s var(--ease-out);
+}
+.rail-tick:hover .rail-label,
+.rail-tick:focus-visible .rail-label {
+  opacity: 1;
+  translate: 0 0;
+}
+
 /* Project row panel: expands by animating its grid track */
 .project-panel {
   grid-template-rows: 0fr;

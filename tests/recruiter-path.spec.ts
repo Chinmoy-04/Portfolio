@@ -78,3 +78,12 @@ test("no page scrolls sideways", async ({ page }) => {
     expect(overflow, `${path} overflows horizontally`).toBeLessThanOrEqual(0);
   }
 });
+
+test("the hero has one chapter per project, each linking to its row", async ({ page }) => {
+  await page.goto("/");
+  const hero = page.getByRole("region", { name: "Introduction" });
+  const links = hero.getByRole("link", { name: "Read the project" });
+  await expect(links).toHaveCount(7);
+  await expect(links.first()).toHaveAttribute("href", "#p-subspacead");
+  await expect(links.last()).toHaveAttribute("href", "#p-german-air");
+});

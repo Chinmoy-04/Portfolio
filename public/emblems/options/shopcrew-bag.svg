@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- ShopCrew: a shopping bag with an approval tick. Accent: #pending-node. -->
+  <path fill="#e9eaec" fill-rule="evenodd" d="M38 72 L162 72 L172 184 L28 184 Z M50 84 L150 84 L158 172 L42 172 Z" />
+  <path d="M72 72 C72 26 128 26 128 72" fill="none" stroke="#e9eaec" stroke-width="10" />
+  <g id="pending-node" fill="#ffb020" stroke="#ffb020">
+  <polyline points="72,128 94,150 132,106" fill="none" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

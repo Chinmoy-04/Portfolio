@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- SubspaceAD: an MVTec bottle seen from the top, with a flaw on the rim. Accent: #anomaly. -->
+  <circle cx="100" cy="100" r="78" fill="none" stroke="#e9eaec" stroke-width="13" />
+  <circle cx="100" cy="100" r="54" fill="none" stroke="#e9eaec" stroke-width="6" />
+  <circle cx="100" cy="100" r="28" fill="none" stroke="#e9eaec" stroke-width="10" />
+  <g id="anomaly" fill="#ffb020" stroke="#ffb020">
+  <path d="M146 40 C154 32 166 36 168 46 C170 56 162 64 154 62 C146 60 140 48 146 40 Z" />
+  </g>
+</svg>

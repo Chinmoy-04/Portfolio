@@ -18,8 +18,11 @@ export const siteConfig = {
   /** Longest the loading counter may run, in milliseconds. */
   introMaxMs: 3000,
 
+  /** Scroll height of the hero's opening (the name), in viewport heights. */
+  openingHeightVh: 100,
+
   /** Scroll height of each hero chapter, in viewport heights. */
-  chapterHeightVh: 100,
+  chapterHeightVh: 200,
 
   features: {
     customCursor: true,

@@ -57,7 +57,8 @@ export const DEFAULT_ASCII: AsciiSettings = {
   cap: 24,
   memoryMs: 1200,
   trail: 1,
-  smoothMs: 80,
+  // Raised to 100 on 18 Nov 2026.
+  smoothMs: 100,
   hold: 0.3,
   fade: 1,
   haze: 1,
@@ -165,6 +166,21 @@ export class AsciiPass {
   setPointer(point: { x: number; y: number } | null) {
     const { height, dpr } = this.size;
     this.pointer.setPointer(point && { x: point.x * dpr, y: (height - point.y) * dpr });
+  }
+
+  /*
+    Compiles the scene's shaders as drawn into this pass's target. three.js
+    builds a separate shader variant for render targets, so compiling for the
+    canvas alone does not cover it.
+  */
+  compile(scene: Scene, camera: Camera) {
+    const r = this.renderer;
+    const previous = r.getRenderTarget();
+    r.setRenderTarget(this.sceneTarget);
+    // compileAsync starts compiling synchronously, so the target can be restored at once.
+    const done = r.compileAsync(scene, camera);
+    r.setRenderTarget(previous);
+    return done;
   }
 
   render(scene: Scene, camera: Camera, dt: number) {

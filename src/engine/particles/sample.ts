@@ -93,7 +93,7 @@ export function sampleRaster(
   return out;
 }
 
-function canvas2d(width: number, height: number) {
+export function canvas2d(width: number, height: number) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -172,19 +172,4 @@ export function sampleText(
     edgeShare: 0.25,
     ...options,
   });
-}
-
-/*
-  Generator emblems return points directly. Each takes the point count and a
-  seeded random source, and returns a cloud in the format above. The four
-  generators named in projects.ts are added in Phase 5.
-*/
-export type Generator = (count: number, rng: Rng) => Cloud;
-
-export const generators: Record<string, Generator> = {};
-
-export function sampleGenerator(id: string, count: number, seed = 1): Cloud {
-  const generate = generators[id];
-  if (!generate) throw new Error(`Unknown emblem generator "${id}"`);
-  return generate(count, makeRng(seed));
 }

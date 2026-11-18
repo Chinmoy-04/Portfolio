@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- PaintOps: a car seen head on, defect flagged on the bonnet. Accent: #defect. -->
+  <path fill="#e9eaec" fill-rule="evenodd" d="M30 152 L30 112 C30 102 36 96 46 94 L58 62 C60 56 66 52 74 52 L126 52 C134 52 140 56 142 62 L154 94 C164 96 170 102 170 112 L170 152 Z M66 88 L76 62 L124 62 L134 88 Z M40 108 L64 108 L64 120 L40 120 Z M136 108 L160 108 L160 120 L136 120 Z M78 116 L122 116 L122 130 L78 130 Z" />
+  <rect x="36" y="152" width="24" height="24" fill="#e9eaec" />
+  <rect x="140" y="152" width="24" height="24" fill="#e9eaec" />
+  <rect x="16" y="84" width="16" height="10" fill="#e9eaec" />
+  <rect x="168" y="84" width="16" height="10" fill="#e9eaec" />
+  <g id="defect" fill="#ffb020" stroke="#ffb020">
+  <ellipse cx="116" cy="101" rx="11" ry="6" />
+  </g>
+</svg>

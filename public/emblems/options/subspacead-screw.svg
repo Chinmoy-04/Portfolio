@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- SubspaceAD: a screw in side view, with a damaged thread. Accent: #anomaly. -->
+  <rect x="58" y="14" width="26" height="40" fill="#e9eaec" />
+  <rect x="88" y="14" width="24" height="40" fill="#e9eaec" />
+  <rect x="116" y="14" width="26" height="40" fill="#e9eaec" />
+  <rect x="86" y="54" width="28" height="122" fill="#e9eaec" />
+  <polygon fill="#e9eaec" points="70,62 130,66 130,71 70,67" />
+  <polygon fill="#e9eaec" points="70,73 130,77 130,82 70,78" />
+  <polygon fill="#e9eaec" points="70,84 130,88 130,93 70,89" />
+  <polygon fill="#e9eaec" points="70,95 130,99 130,104 70,100" />
+  <polygon fill="#e9eaec" points="70,106 130,110 130,115 70,111" />
+  <polygon fill="#e9eaec" points="70,117 130,121 130,126 70,122" />
+  <polygon fill="#e9eaec" points="70,128 130,132 130,137 70,133" />
+  <polygon fill="#e9eaec" points="70,139 130,143 130,148 70,144" />
+  <polygon fill="#e9eaec" points="70,150 130,154 130,159 70,155" />
+  <polygon fill="#e9eaec" points="70,161 130,165 130,170 70,166" />
+  <polygon fill="#e9eaec" points="86,176 114,176 100,194" />
+  <g id="anomaly" fill="#ffb020" stroke="#ffb020">
+  <path d="M126 104 C134 98 144 102 144 110 C144 118 136 124 128 120 C122 117 120 108 126 104 Z" />
+  </g>
+</svg>

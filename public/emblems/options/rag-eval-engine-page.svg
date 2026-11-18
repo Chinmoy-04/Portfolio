@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- RAG Eval Engine: a source document with its score stamped on it. Accent: #needle. -->
+  <path fill="#e9eaec" fill-rule="evenodd" d="M36 14 L130 14 L166 50 L166 186 L36 186 Z M47 25 L125 25 L155 55 L155 175 L47 175 Z" />
+  <path d="M128 16 L128 52 L164 52" fill="none" stroke="#e9eaec" stroke-width="9" />
+  <rect x="60" y="62" width="70" height="7" fill="#e9eaec" />
+  <rect x="60" y="78" width="88" height="7" fill="#e9eaec" />
+  <rect x="60" y="94" width="60" height="7" fill="#e9eaec" />
+  <rect x="60" y="110" width="84" height="7" fill="#e9eaec" />
+  <rect x="60" y="134" width="40" height="7" fill="#e9eaec" />
+  <rect x="60" y="150" width="30" height="7" fill="#e9eaec" />
+  <g id="needle" fill="#ffb020" stroke="#ffb020">
+  <circle cx="128" cy="146" r="17" fill="none" stroke-width="7" />
+  <polyline points="119,146 126,153 138,139" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

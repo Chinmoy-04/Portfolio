@@ -1,17 +1,54 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Emblem } from "@/content/projects";
-import { projects } from "@/content/projects";
+import { type Emblem, heroProjects, type Project } from "@/content/projects";
 import { type AsciiSettings, DEFAULT_ASCII } from "@/engine/ascii/AsciiPass";
 import type { ParticleField, ParticleStats } from "@/engine/particles/ParticleField";
 
-const project = projects.find((p) => p.slug === "subspacead")!;
+/*
+  Alternative emblems per project slug, kept so a project can switch later.
+  SVG options live in public/emblems/options/<slug>-<option>.svg; generator
+  options are ids from engine/particles/generators.ts. Each uses the same
+  accent as the project's current emblem.
+*/
+const OPTIONS: Record<string, string[]> = {
+  subspacead: ["bottle", "screw", "patches"],
+  shopcrew: ["bag", "grid", "store"],
+  paintops: ["sedan", "suv", "front"],
+  "rag-eval-engine": ["bars", "radar", "page"],
+  "air-gesture-controller": ["swipe", "pi"],
+  "lightrag-local": ["tree", "laptop", "rings"],
+  "german-air": ["outline", "lungs", "chart"],
+};
 
-const EMBLEMS: { id: string; label: string; emblem: Emblem }[] = [
-  { id: "svg", label: "SVG emblem", emblem: project.hero!.emblem },
-  { id: "text", label: "Text fallback", emblem: { kind: "text" } },
-];
+const GENERATOR_OPTIONS: Record<string, string[]> = {
+  "rag-eval-engine": ["score-gauge"],
+  "air-gesture-controller": ["hand-skeleton"],
+};
+
+type Choice = { id: string; label: string; project: Project; emblem: Emblem };
+
+const GROUPS: { project: Project; choices: Choice[] }[] = heroProjects.map((project) => ({
+  project,
+  choices: [
+    { id: `${project.slug}:current`, label: "Current", project, emblem: project.hero!.emblem },
+    ...(OPTIONS[project.slug] ?? []).map((option) => ({
+      id: `${project.slug}:${option}`,
+      label: `Option: ${option}`,
+      project,
+      emblem: { kind: "svg", src: `/emblems/options/${project.slug}-${option}.svg` } as Emblem,
+    })),
+    ...(GENERATOR_OPTIONS[project.slug] ?? []).map((id) => ({
+      id: `${project.slug}:${id}`,
+      label: `Generator: ${id}`,
+      project,
+      emblem: { kind: "generator", id } as Emblem,
+    })),
+    { id: `${project.slug}:text`, label: "Text fallback", project, emblem: { kind: "text" } },
+  ],
+}));
+
+const CHOICES = GROUPS.flatMap((g) => g.choices);
 
 type NumberKey = {
   [K in keyof AsciiSettings]: AsciiSettings[K] extends number ? K : never;
@@ -60,7 +97,12 @@ export function ParticleDebug() {
   const fieldRef = useRef<ParticleField | null>(null);
   const progressRef = useRef(0);
   const [progress, setProgress] = useState(0);
-  const [emblemId, setEmblemId] = useState(EMBLEMS[0].id);
+  const [emblemId, setEmblemId] = useState(CHOICES[0].id);
+  const choice = CHOICES.find((c) => c.id === emblemId)!;
+  const step = (by: number) => {
+    const i = CHOICES.findIndex((c) => c.id === emblemId);
+    setEmblemId(CHOICES[(i + by + CHOICES.length) % CHOICES.length].id);
+  };
   const [stats, setStats] = useState<ParticleStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [asciiOn, setAsciiOn] = useState(true);
@@ -83,7 +125,7 @@ export function ParticleDebug() {
       const tier = isTier(forced) ? forced : detectTier();
 
       const css = getComputedStyle(document.documentElement);
-      const emblem = EMBLEMS.find((e) => e.id === emblemId)!.emblem;
+      const { emblem, project } = CHOICES.find((c) => c.id === emblemId)!;
       const cloud = await loadEmblem(
         { emblem, name: project.name, accentRegion: project.hero?.accentRegion },
         TIERS[tier].particles,
@@ -152,7 +194,7 @@ export function ParticleDebug() {
 
       <header className="absolute top-0 left-0 px-[var(--gutter)] pt-6">
         <p className="type-label text-muted">Phase 4 debug. Not part of the public site.</p>
-        <h1 className="type-h2 mt-2">Particle engine: {project.name}</h1>
+        <h1 className="type-h2 mt-2">Particle engine: {choice.project.name}</h1>
       </header>
 
       <aside className="border-line bg-bg/80 type-mono text-muted absolute top-6 right-[var(--gutter)] w-72 border p-4 text-xs backdrop-blur-sm">
@@ -165,7 +207,9 @@ export function ParticleDebug() {
           />
           ASCII pass
         </label>
-        {emblemId === "text" && <p className="mt-2">Text emblems always print as points.</p>}
+        {choice.emblem.kind === "text" && (
+          <p className="mt-2">Text emblems always print as points.</p>
+        )}
 
         <fieldset disabled={!asciiOn} className="mt-3 space-y-2 disabled:opacity-40">
           <label className="block">
@@ -242,13 +286,33 @@ export function ParticleDebug() {
               onChange={(e) => setEmblemId(e.target.value)}
               className="border-line bg-bg text-text border px-2 py-1"
             >
-              {EMBLEMS.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.label}
-                </option>
+              {GROUPS.map((g) => (
+                <optgroup key={g.project.slug} label={g.project.name}>
+                  {g.choices.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.project.name}: {c.label}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </label>
+          <span className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => step(-1)}
+              className="border-line text-text hover:border-accent border px-2 py-1"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              className="border-line text-text hover:border-accent border px-2 py-1"
+            >
+              Next
+            </button>
+          </span>
           <span>progress {progress.toFixed(3)}</span>
           {stats && (
             <>

@@ -100,7 +100,7 @@ export const projects: Project[] = [
     stack: ["Python", "LangGraph", "RAG", "SQL"],
     links: { repo: "https://github.com/Chinmoy-04/paintops" },
     hero: {
-      emblem: { kind: "svg", src: "/emblems/paintops.svg" },
+      emblem: { kind: "svg", src: "/emblems/options/paintops-spray.svg" },
       accentRegion: "defect",
     },
   },
@@ -119,8 +119,8 @@ export const projects: Project[] = [
       demo: "https://rag-eval-engine.vercel.app",
     },
     hero: {
-      emblem: { kind: "generator", id: "score-gauge" },
-      accentRegion: "needle",
+      emblem: { kind: "generator", id: "score-radar" },
+      accentRegion: "scores",
     },
   },
   {
@@ -135,7 +135,7 @@ export const projects: Project[] = [
     stack: ["Python", "Ultralytics YOLO11n", "Sony IMX500", "Raspberry Pi 5"],
     links: { repo: "https://github.com/Chinmoy-04/air-gesture-controller" },
     hero: {
-      emblem: { kind: "generator", id: "hand-skeleton" },
+      emblem: { kind: "svg", src: "/emblems/options/air-gesture-controller-palm.svg" },
       accentRegion: "fingertips",
     },
   },
@@ -185,7 +185,7 @@ export const projects: Project[] = [
       demo: "https://german-air.vercel.app",
     },
     hero: {
-      emblem: { kind: "svg", src: "/emblems/german-air.svg" },
+      emblem: { kind: "svg", src: "/emblems/options/german-air-hexbin.svg" },
       accentRegion: "states",
     },
   },

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Air Gesture Controller: an open palm inside a YOLO detection box. Accent: #fingertips. -->
+  <rect x="64" y="98" width="78" height="64" rx="18" fill="#e9eaec" />
+  <rect x="76" y="156" width="52" height="30" fill="#e9eaec" />
+  <line x1="70" y1="132" x2="34" y2="94" stroke="#e9eaec" stroke-width="20" stroke-linecap="round" />
+  <line x1="80" y1="104" x2="70" y2="36" stroke="#e9eaec" stroke-width="20" stroke-linecap="round" />
+  <line x1="100" y1="100" x2="100" y2="26" stroke="#e9eaec" stroke-width="20" stroke-linecap="round" />
+  <line x1="120" y1="104" x2="128" y2="38" stroke="#e9eaec" stroke-width="20" stroke-linecap="round" />
+  <line x1="136" y1="116" x2="156" y2="62" stroke="#e9eaec" stroke-width="20" stroke-linecap="round" />
+  <path d="M10 36 L10 10 L36 10" fill="none" stroke="#e9eaec" stroke-width="6" />
+  <path d="M164 10 L190 10 L190 36" fill="none" stroke="#e9eaec" stroke-width="6" />
+  <path d="M10 164 L10 190 L36 190" fill="none" stroke="#e9eaec" stroke-width="6" />
+  <path d="M164 190 L190 190 L190 164" fill="none" stroke="#e9eaec" stroke-width="6" />
+  <g id="fingertips" fill="#ffb020" stroke="#ffb020">
+  <circle cx="34" cy="94" r="11" />
+  <circle cx="70" cy="36" r="11" />
+  <circle cx="100" cy="26" r="11" />
+  <circle cx="128" cy="38" r="11" />
+  <circle cx="156" cy="62" r="11" />
+  </g>
+</svg>

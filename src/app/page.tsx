@@ -1,4 +1,4 @@
-import { StaticHero } from "@/components/hero/StaticHero";
+import { Hero } from "@/components/hero/Hero";
 import { FieldRegion } from "@/components/motion/FieldRegion";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { ProjectList } from "@/components/projects/ProjectList";
@@ -18,7 +18,7 @@ export default function HomePage() {
       <SkipLink />
       <PinnedNav />
       <main id="main">
-        <StaticHero />
+        <Hero />
 
         <FieldRegion className="mx-auto grid max-w-[1400px] gap-16 px-[var(--gutter)] pt-16 pb-8 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:pt-24">
           <IdentityColumn />

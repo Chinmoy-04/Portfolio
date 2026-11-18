@@ -18,24 +18,35 @@ type Props = {
 export function ProjectList({ projects, expandAll = false }: Props) {
   const [openSlug, setOpenSlug] = useState<string | null>(null);
 
+  /** Opens the row named in the hash and returns it, or null. */
   const openFromHash = useCallback(() => {
     const match = window.location.hash.match(/^#p-(.+)$/);
-    if (!match) return;
+    if (!match) return null;
     const slug = decodeURIComponent(match[1]);
-    if (!projects.some((p) => p.slug === slug)) return;
+    if (!projects.some((p) => p.slug === slug)) return null;
     setOpenSlug(slug);
-    const row = document.getElementById(`p-${slug}`);
-    if (row) scrollToElement(row);
+    return document.getElementById(`p-${slug}`);
   }, [projects]);
 
   useEffect(() => {
     if (expandAll) return;
-    // Read the hash once the first frame has painted, then follow changes.
-    const frame = requestAnimationFrame(openFromHash);
-    window.addEventListener("hashchange", openFromHash);
+    const scrollTo = (row: HTMLElement | null) => {
+      if (row) scrollToElement(row);
+    };
+    // Open the row in the next task rather than the next frame: frames can be
+    // held up for seconds while the hero engine starts on a slow device.
+    // Scroll once a frame has painted, so the open row has its height.
+    let frame = 0;
+    const timer = setTimeout(() => {
+      const row = openFromHash();
+      frame = requestAnimationFrame(() => scrollTo(row));
+    });
+    const onHashChange = () => scrollTo(openFromHash());
+    window.addEventListener("hashchange", onHashChange);
     return () => {
+      clearTimeout(timer);
       cancelAnimationFrame(frame);
-      window.removeEventListener("hashchange", openFromHash);
+      window.removeEventListener("hashchange", onHashChange);
     };
   }, [expandAll, openFromHash]);
 

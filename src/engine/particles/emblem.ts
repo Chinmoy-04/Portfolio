@@ -1,5 +1,6 @@
 import type { Emblem } from "@/content/projects";
-import { type Cloud, sampleGenerator, sampleSvg, sampleText } from "./sample";
+import { sampleGenerator } from "./generators";
+import { type Cloud, sampleSvg, sampleText } from "./sample";
 
 export type EmblemSource = {
   emblem: Emblem;

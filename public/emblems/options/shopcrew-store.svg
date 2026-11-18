@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- ShopCrew: a one-person shop front with a notification badge. Accent: #pending-node. -->
+  <rect x="48" y="14" width="104" height="20" fill="#e9eaec" />
+  <rect x="20" y="42" width="160" height="26" fill="#e9eaec" />
+  <circle cx="36" cy="68" r="16" fill="#e9eaec" />
+  <circle cx="68" cy="68" r="16" fill="#e9eaec" />
+  <circle cx="100" cy="68" r="16" fill="#e9eaec" />
+  <circle cx="132" cy="68" r="16" fill="#e9eaec" />
+  <circle cx="164" cy="68" r="16" fill="#e9eaec" />
+  <path fill="#e9eaec" fill-rule="evenodd" d="M30 90 L170 90 L170 182 L30 182 Z M44 104 L100 104 L100 146 L44 146 Z M114 108 L156 108 L156 182 L114 182 Z" />
+  <g id="pending-node" fill="#ffb020" stroke="#ffb020">
+  <circle cx="158" cy="22" r="15" />
+  </g>
+</svg>
