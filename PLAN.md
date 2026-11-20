@@ -311,6 +311,13 @@ Performance budgets:
 - 60 fps target on desktop, 30 fps floor on phones; device pixel ratio capped at 2 (1.5 on phones).
 - No layout shift from fonts or the canvas.
 
+Measured at the Phase 7 pass (20 Nov 2026, production build, Edge):
+- LCP 0.6 s on desktop; 1.2 to 1.6 s on a Pixel 7 profile at 4x CPU throttle and 1.6 Mbps. With the counter opening the counter digits are the LCP element, not the headline; with `?intro=none` it is the headline.
+- Layout shift 0 on desktop and phone. Two shifts were fixed: the headline broke onto a third line on phones once Archivo loaded (font size now fits "Jyoti Bora" on one line from 320 px), and the active rail tick animated its width (now a transform).
+- First-load JavaScript 240 KB gzipped; `asciify-engine` now loads after first paint like three.js (was 300 KB).
+- Desktop hero above 60 fps on the GPU tested (RTX laptop). Phone frame rate not measured: needs a real phone (Phase 7 checkpoint).
+- Reflow at 320 px passes on `/` and `/work`. Known exception: with phone text at 200%, the top bar's "View projects" button runs about 24 px past the screen edge.
+
 SEO and sharing: page titles and descriptions, Open Graph image (a still of the hero), `sitemap.xml`, and JSON-LD `Person` data.
 
 ---

@@ -43,6 +43,8 @@ body {
   font-family: var(--font-sans);
   font-size: var(--step-body);
   line-height: 1.6;
+  /* Long words (an email, a project name at heading size) wrap under large text settings. */
+  overflow-wrap: break-word;
 }
 
 ::selection {
@@ -53,6 +55,10 @@ body {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+/* Sections that receive focus from an anchor jump (SmoothScroll.tsx) get no ring. */
+[tabindex="-1"]:focus {
+  outline: none;
 }
 
 /* Custom cursor (src/components/ui/Cursor.tsx). Hidden until the pointer moves. */
@@ -162,10 +168,12 @@ body {
   font-size: var(--step-small);
 }
 
-/* Hero name: sized so "Jyoti Bora" fits one line at every width */
+/* Hero name: sized so "Jyoti Bora" fits one line at every width from 320px.
+   That line is 7.67 times the font size wide; the content box is about
+   0.95vw - 1rem, so 11.9vw - 0.125rem leaves a few percent to spare. */
 .hero-name {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 0.6rem + 10.5vw, 10rem);
+  font-size: clamp(2.25rem, 11.9vw - 0.125rem, 10rem);
   font-weight: 900;
   font-stretch: 125%;
   line-height: 0.88;
@@ -346,6 +354,12 @@ body {
 .btn-lg {
   padding: 0.9rem 1.4rem;
 }
+/* Finger-sized on touch screens */
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+}
 .btn-primary {
   background: var(--accent);
   color: var(--on-accent);
@@ -386,18 +400,18 @@ body {
 .rail-tick[aria-current] {
   color: var(--accent);
 }
+/* The bar keeps its full box and scales, so the active tick never moves its row. */
 .rail-bar {
   display: block;
-  width: 14px;
-  height: 1px;
-  background: currentColor;
-  transition:
-    width 0.35s var(--ease-out),
-    height 0.35s var(--ease-out);
-}
-.rail-tick[aria-current] .rail-bar {
   width: 36px;
   height: 2px;
+  background: currentColor;
+  transform-origin: right center;
+  transform: scale(calc(14 / 36), 0.5);
+  transition: transform 0.35s var(--ease-out);
+}
+.rail-tick[aria-current] .rail-bar {
+  transform: none;
 }
 .rail-label {
   opacity: 0;

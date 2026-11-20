@@ -51,6 +51,12 @@ export function SmoothScroll() {
       history.pushState(null, "", url.hash);
       window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL, newURL: location.href }));
       scrollToElement(target);
+      // A native anchor jump moves keyboard focus to the target; do the same,
+      // so the next Tab continues from there. Hidden scroll markers are skipped.
+      if (!target.closest("[aria-hidden='true']")) {
+        if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      }
     };
     document.addEventListener("click", onClick);
 

@@ -128,3 +128,34 @@ test("the Enter button holds the counter until pressed", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "Chinmoy Jyoti Bora", level: 1 })).toBeVisible();
   }
 });
+
+test("Skip to projects moves keyboard focus to the project list", async ({ page, isMobile }) => {
+  test.skip(isMobile, "keyboard path");
+  await page.goto("/?intro=none");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Skip to projects" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: /^SubspaceAD/ }).first()).toBeFocused();
+});
+
+test("the Enter button comes right after the top bar in tab order", async ({ page, isMobile }) => {
+  test.skip(isMobile, "keyboard path");
+  await page.goto("/?intro=counter&enter=before");
+  const enter = page.getByRole("button", { name: "Enter", exact: true });
+  await expect(enter).toBeVisible({ timeout: 12_000 });
+  // Skip link, name, Sound, View projects, then Enter.
+  await page.keyboard.press("Tab", { delay: 0 });
+  for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
+  await expect(enter).toBeFocused();
+});
+
+test("every project has a heading and a distinct hero link", async ({ page }) => {
+  await page.goto("/work");
+  await expect(page.getByRole("heading", { level: 3 })).toHaveCount(7);
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: "Chinmoy Jyoti Bora", exact: true, level: 1 }),
+  ).toBeAttached();
+  await expect(page.getByRole("link", { name: "Read the project: German Air" })).toHaveCount(1);
+});

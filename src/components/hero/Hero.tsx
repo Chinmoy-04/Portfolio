@@ -652,6 +652,43 @@ export function Hero() {
         data-cursor="field"
         className="hero-stage sticky top-0 h-[100dvh] overflow-hidden"
       >
+        {/* Counter opening. Shown before first paint by CSS when <html data-intro="counter">,
+            and faded out by CSS at the cap even if the script never runs. First in the
+            stage, so its Enter buttons come right after the top bar in tab order. */}
+        <div
+          ref={counterRef}
+          className="intro-counter bg-bg absolute inset-0 z-[calc(var(--z-rail)+1)] flex-col justify-end px-[var(--gutter)] pb-12 lg:pb-16"
+        >
+          <div className="mx-auto w-full max-w-[1400px]">
+            <p aria-hidden="true" className="intro-count tabular-nums">
+              <span ref={counterValueRef}>0</span>
+            </p>
+            <p aria-hidden="true" className="type-mono mt-6 overflow-hidden whitespace-pre">
+              <span ref={barFillRef} className="text-text" />
+              <span ref={barRestRef} className="text-dim">
+                {".".repeat(BAR_CELLS)}
+              </span>
+            </p>
+            {/* Shown by CSS while the counter waits (.is-gated). */}
+            <div className="intro-enter mt-10 flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => enterRef.current?.(true)}
+                className="btn btn-primary btn-lg"
+              >
+                Enter
+              </button>
+              <button
+                type="button"
+                onClick={() => enterRef.current?.(false)}
+                className="btn btn-ghost btn-lg"
+              >
+                Enter without sound
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div
           ref={posterRef}
           aria-hidden="true"
@@ -674,8 +711,8 @@ export function Hero() {
             className="hero-opening absolute inset-x-[var(--gutter)] bottom-12 lg:bottom-16"
           >
             <h1 ref={nameRef} className="hero-name transition-opacity duration-700">
-              {first}
-              <br />
+              {/* The space keeps the accessible name "Chinmoy Jyoti Bora" across the break. */}
+              {first} <br />
               {rest.join(" ")}
             </h1>
             <div className="hero-sub mt-8 flex flex-col gap-6 transition-opacity duration-700 lg:flex-row lg:items-end lg:justify-between">
@@ -715,6 +752,8 @@ export function Hero() {
               <a
                 href={`#p-${p.slug}`}
                 onFocus={() => reveal(p.slug, chapterRefs.current[i])}
+                // Seven links share the visible text; the label tells them apart.
+                aria-label={`Read the project: ${p.name}`}
                 className="link type-label mt-8 inline-block"
               >
                 Read the project <span aria-hidden="true">→</span>
@@ -746,42 +785,6 @@ export function Hero() {
             </ol>
           </nav>
         )}
-
-        {/* Counter opening. Shown before first paint by CSS when <html data-intro="counter">,
-            and faded out by CSS at the cap even if the script never runs. */}
-        <div
-          ref={counterRef}
-          className="intro-counter bg-bg absolute inset-0 z-[var(--z-rail)] flex-col justify-end px-[var(--gutter)] pb-12 lg:pb-16"
-        >
-          <div className="mx-auto w-full max-w-[1400px]">
-            <p aria-hidden="true" className="intro-count tabular-nums">
-              <span ref={counterValueRef}>0</span>
-            </p>
-            <p aria-hidden="true" className="type-mono mt-6 overflow-hidden whitespace-pre">
-              <span ref={barFillRef} className="text-text" />
-              <span ref={barRestRef} className="text-dim">
-                {".".repeat(BAR_CELLS)}
-              </span>
-            </p>
-            {/* Shown by CSS while the counter waits (.is-gated). */}
-            <div className="intro-enter mt-10 flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => enterRef.current?.(true)}
-                className="btn btn-primary btn-lg"
-              >
-                Enter
-              </button>
-              <button
-                type="button"
-                onClick={() => enterRef.current?.(false)}
-                className="btn btn-ghost btn-lg"
-              >
-                Enter without sound
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );

@@ -33,7 +33,7 @@ export default function WorkPage() {
 
           <ul className="type-label mt-6 flex flex-wrap gap-x-6 gap-y-2">
             <li>
-              <a className="link" href={`mailto:${profile.links.email}`}>
+              <a className="link break-all" href={`mailto:${profile.links.email}`}>
                 {profile.links.email}
               </a>
             </li>

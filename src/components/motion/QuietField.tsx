@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { background, drift, type BackgroundHandle } from "asciify-engine/kit";
+import type { BackgroundHandle } from "asciify-engine/kit";
 
 type Rect = { left: number; top: number; width: number; height: number };
 
@@ -46,24 +46,31 @@ export function QuietField({ regionRef }: { regionRef: React.RefObject<HTMLEleme
       return cache;
     };
 
+    // The library loads after first paint, in its own chunk: the field sits
+    // below the fold and the page is complete without it.
     let handle: BackgroundHandle | null = null;
-    try {
-      handle = background(host, {
-        preset: drift,
-        ink: "--field-ink",
-        accent: "--muted",
-        cursor: false,
-        opacity: 0.55,
-        clear: rects,
-        clearPadding: 18,
-        clearSoftness: 48,
-        clearStrength: 0.95,
+    let cancelled = false;
+    import("asciify-engine/kit")
+      .then(({ background, drift }) => {
+        if (cancelled) return;
+        handle = background(host, {
+          preset: drift,
+          ink: "--field-ink",
+          accent: "--muted",
+          cursor: false,
+          opacity: 0.55,
+          clear: rects,
+          clearPadding: 18,
+          clearSoftness: 48,
+          clearStrength: 0.95,
+        });
+      })
+      .catch(() => {
+        // No WebGL or the field failed: the page is complete without it.
       });
-    } catch {
-      // No WebGL or the field failed: the page is complete without it.
-    }
 
     return () => {
+      cancelled = true;
       observer.disconnect();
       handle?.destroy();
     };

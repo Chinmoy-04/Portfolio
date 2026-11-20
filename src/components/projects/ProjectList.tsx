@@ -93,7 +93,7 @@ function ProjectRow({
   const heading = (
     <>
       <span className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <span className="type-h2 group-hover:text-accent transition-colors duration-200">
+        <span className="type-h2 group-hover:text-accent min-w-0 transition-colors duration-200">
           {project.name}
         </span>
         <span className="type-label text-accent">{domainLabels[project.domain]}</span>
@@ -113,19 +113,22 @@ function ProjectRow({
           {number}
         </span>
 
-        {toggleable ? (
-          <button
-            type="button"
-            aria-expanded={open}
-            aria-controls={panelId}
-            onClick={onToggle}
-            className="group text-left"
-          >
-            {heading}
-          </button>
-        ) : (
-          <div>{heading}</div>
-        )}
+        {/* A heading per row, so screen readers can jump between projects. */}
+        <h3>
+          {toggleable ? (
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls={panelId}
+              onClick={onToggle}
+              className="group w-full text-left"
+            >
+              {heading}
+            </button>
+          ) : (
+            heading
+          )}
+        </h3>
 
         <div className="col-start-2 mt-4 flex items-center gap-5 sm:col-start-3 sm:row-start-1 sm:mt-1 sm:items-start">
           <QuickLinks project={project} />
@@ -191,7 +194,7 @@ function ProjectDetails({ project }: { project: Project }) {
   return (
     <div
       data-field-clear
-      className="grid gap-8 pb-10 pl-[calc(2.25rem+0.75rem)] sm:pl-[calc(3rem+1rem)] lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-12"
+      className="grid grid-cols-[minmax(0,1fr)] gap-8 pb-10 pl-[calc(2.25rem+0.75rem)] sm:pl-[calc(3rem+1rem)] lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-12"
     >
       <div>
         <p className="max-w-[62ch]">{project.summary}</p>
