@@ -50,7 +50,7 @@ export function QuietField({ regionRef }: { regionRef: React.RefObject<HTMLEleme
     try {
       handle = background(host, {
         preset: drift,
-        ink: "--dim",
+        ink: "--field-ink",
         accent: "--muted",
         cursor: false,
         opacity: 0.55,

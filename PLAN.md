@@ -39,7 +39,7 @@ Success means:
 | Mobile | Lighter version: fewer particles, no cursor effects; still frame under reduced motion |
 | Personal | Open-to-work line, CV download, photo (tried in ASCII first) |
 | Contact | Email, LinkedIn, GitHub links. No form |
-| Extras | Custom cursor, chapter progress rail, sound (off by default), cookie-free analytics |
+| Extras | Custom cursor, chapter progress rail, sound (on by default since 20 Nov 2026; starts on the first click, tap or key press), cookie-free analytics |
 | Language | English only |
 | Hosting | Next.js on Vercel, Vercel subdomain for now, domain kept configurable |
 
@@ -255,7 +255,7 @@ In all three the pinned "View projects" button is clickable from the first paint
 
 ### 7.6 Sound
 
-- Off by default. A small toggle sits in the pinned nav; the choice is remembered.
+- On by default (changed 20 Nov 2026), starting on the visitor's first click, tap or key press, since browsers block audio before one. A small toggle sits in the pinned nav; turning it off is remembered.
 - Synthesised: a soft filtered-noise bed that narrows in pitch as particles gather, and a short tone when an emblem locks.
 - Never plays under reduced motion unless the visitor turns it on.
 
@@ -293,7 +293,7 @@ The same `ProjectList` component with all rows expanded by default, no canvas, n
 
 | Situation | Behaviour |
 |---|---|
-| WebGL unavailable or context lost | Static pre-rendered ASCII poster behind the headline; chapters become a simple stacked list of the seven projects |
+| WebGL unavailable or context lost | Static pre-rendered ASCII poster behind the headline, then straight to the project list; the hero chapters are left out (20 Nov 2026) |
 | `prefers-reduced-motion` | Still frame per chapter, no morphing, no smooth scroll, no cursor effects |
 | Phone or low-power device | Low particle tier, larger cells, no pointer displacement, no custom cursor |
 | Tab hidden or hero off screen | Render loop paused |
@@ -421,5 +421,6 @@ Needed by Phase 8:
 
 - Whether the photo works in ASCII (decided in Phase 1 by trying it).
 - ~~The default opening~~: decided 20 Nov 2026, the loading counter. At 100 its digits dissolve into particles and the name fades in out of the background; the other two stay available through `?intro=`.
+- Enter button for the counter opening (added 20 Nov 2026): browsers only play sound after a click, so the button is that click, and the opening has its own sound (a riser under the count, a shimmer under the dissolve). Picked 20 Nov 2026: after the counter (it waits at 100). `?enter=before` (waits at 0) and `?enter=none` stay available.
 - Custom domain (later; no code change needed).
 - Shape-aware glyph matching (7.2, Step B). Phase 4 ships the luminance ramp only; the frame budget is judged at the Phase 4 checkpoint before taking this on.

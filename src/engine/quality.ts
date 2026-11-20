@@ -14,12 +14,17 @@ export type TierSettings = {
   maxDpr: number;
   /** Frame rate below which this tier is dropped */
   minFps: number;
+  /**
+   * ASCII cell size relative to the locked setting. Larger cells on the low
+   * tier: fewer cells to fill, and glyphs stay legible on a small screen.
+   */
+  cellScale: number;
 };
 
 export const TIERS: Record<Tier, TierSettings> = {
-  high: { particles: 40_000, maxDpr: 2, minFps: 50 },
-  mid: { particles: 12_000, maxDpr: 1.5, minFps: 45 },
-  low: { particles: 6_000, maxDpr: 1.5, minFps: 0 },
+  high: { particles: 40_000, maxDpr: 2, minFps: 50, cellScale: 1 },
+  mid: { particles: 12_000, maxDpr: 1.5, minFps: 45, cellScale: 1 },
+  low: { particles: 6_000, maxDpr: 1.5, minFps: 0, cellScale: 1.5 },
 };
 
 const ORDER: Tier[] = ["high", "mid", "low"];

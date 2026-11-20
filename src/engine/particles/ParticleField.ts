@@ -47,8 +47,15 @@ export type ParticleFieldOptions = {
   asciiFont?: string;
   /** Let the pointer pull the ASCII image. Leave off for touch and reduced motion. */
   pointer?: boolean;
+  /**
+   * Still frames, for reduced motion: time stands still in the field and a
+   * frame is drawn only when something the owner sets has changed.
+   */
+  still?: boolean;
   /** Called once the shaders have compiled and the first frame can draw */
   onReady?: () => void;
+  /** Called after the canvas changes size, once viewExtent() reflects it */
+  onResize?: () => void;
 };
 
 export type EmblemLayout = {
@@ -85,6 +92,10 @@ export class ParticleField {
   private drops = 0;
   private tier: Tier;
   private ascii: AsciiPass | null = null;
+  /** ASCII settings as given, before the tier's cell scale */
+  private asciiSettings: AsciiSettings | null = null;
+  /** Something changed since the last frame (only consulted for still frames) */
+  private dirty = true;
   private emblem = 0;
   private lastFrame = 0;
   private running = true;
@@ -184,6 +195,7 @@ export class ParticleField {
 
   setProgress(progress: number) {
     this.material.uniforms.uProgress.value = Math.min(1, Math.max(0, progress));
+    this.dirty = true;
   }
 
   setEmblem(index: number) {
@@ -191,6 +203,7 @@ export class ParticleField {
     this.material.uniforms.uRowOffset.value = index * this.rowsPerEmblem;
     this.material.uniforms.uDataMode.value = this.printing ? 1 : 0;
     this.applyTier();
+    this.dirty = true;
   }
 
   /** Places the emblem. Missing fields keep their current value. */
@@ -200,6 +213,7 @@ export class ParticleField {
     if (y !== undefined) u.uOffset.value.y = y;
     if (scale !== undefined) u.uEmblemScale.value = scale;
     if (rotation !== undefined) u.uRotation.value = rotation;
+    this.dirty = true;
   }
 
   /** Half the visible width and height at the emblem's depth, in scene units. */
@@ -211,6 +225,7 @@ export class ParticleField {
   /** Scales particle brightness: 1 is normal, 0 is invisible. */
   setOpacity(amount: number) {
     this.material.uniforms.uOpacity.value = BASE_OPACITY * amount;
+    this.dirty = true;
   }
 
   /** Stops or restarts the render loop, e.g. while the canvas is off screen. */
@@ -220,19 +235,22 @@ export class ParticleField {
     cancelAnimationFrame(this.frame);
     if (running && this.ready) {
       this.lastFrame = 0;
+      this.dirty = true;
       this.frame = requestAnimationFrame(this.loop);
     }
   }
 
   /** Switches the ASCII pass on with these settings, or off with null. */
   setAscii(settings: AsciiSettings | null) {
+    this.asciiSettings = settings;
+    this.dirty = true;
     if (settings && this.ascii) {
-      this.ascii.setSettings(settings);
+      this.ascii.setSettings(this.tierAscii(settings));
       return;
     }
     if (settings) {
       this.ascii = new AsciiPass(this.renderer, {
-        settings,
+        settings: this.tierAscii(settings),
         ink: this.options.ink,
         accent: this.options.accent,
         fontFamily: this.options.asciiFont ?? "monospace",
@@ -272,8 +290,16 @@ export class ParticleField {
     this.resize();
   }
 
+  /** ASCII settings with the cells scaled for the current tier. */
+  private tierAscii(settings: AsciiSettings): AsciiSettings {
+    const k = TIERS[this.tier].cellScale;
+    return { ...settings, cellWidth: settings.cellWidth * k, cellHeight: settings.cellHeight * k };
+  }
+
   private applyTier() {
     const settings = TIERS[this.tier];
+    if (this.ascii && this.asciiSettings) this.ascii.setSettings(this.tierAscii(this.asciiSettings));
+    this.dirty = true;
     const count = Math.min(settings.particles, this.capacity);
     this.geometry.setDrawRange(0, count);
     this.monitor.setThreshold(settings.minFps);
@@ -296,6 +322,8 @@ export class ParticleField {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.ascii?.resize(width, height, this.renderer.getPixelRatio());
+    this.dirty = true;
+    this.options.onResize?.();
   }
 
   private onPointer = (e: PointerEvent) => {
@@ -313,9 +341,11 @@ export class ParticleField {
 
   private loop = (now: number) => {
     this.frame = requestAnimationFrame(this.loop);
+    if (this.options.still && !this.dirty) return;
+    this.dirty = false;
     const dt = this.lastFrame ? Math.min((now - this.lastFrame) / 1000, 0.1) : 0;
     this.lastFrame = now;
-    this.material.uniforms.uTime.value = (now - this.start) / 1000;
+    if (!this.options.still) this.material.uniforms.uTime.value = (now - this.start) / 1000;
     if (this.printing) this.ascii!.render(this.scene, this.camera, dt);
     else this.renderer.render(this.scene, this.camera);
     this.monitor.tick(now);

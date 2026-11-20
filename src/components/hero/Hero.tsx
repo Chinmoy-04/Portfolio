@@ -10,7 +10,7 @@ import { siteConfig } from "@/content/site.config";
 import type { ParticleField } from "@/engine/particles/ParticleField";
 import { sound } from "@/engine/sound";
 import { scrollToElement } from "@/lib/scroll";
-import { introVariant } from "./intro";
+import { enterGate, heroLive, introVariant } from "./intro";
 
 /*
   The hero (PLAN.md, section 7.4). One tall section with a sticky layer that
@@ -28,8 +28,17 @@ import { introVariant } from "./intro";
   project list takes over.
 
   The headline and chapter text are real HTML, server rendered. The engine is
-  imported after mount, in its own chunk. Without WebGL the static ASCII
-  poster stays up and the text still plays.
+  imported after mount, in its own chunk.
+
+  Fallbacks (PLAN.md, section 9):
+    static          No WebGL 2, no JavaScript, ?webgl=0, or the field fails to
+                    start or loses its context: the page drops <html
+                    data-hero="live"> and CSS (globals.css) shows the ASCII
+                    poster behind the headline, then the project list. The
+                    chapters are hidden. No pinning, no scroll timeline.
+    reduced motion  A still frame per chapter: the emblem is shown whole,
+                    time stands still in the field, and chapters fade from one
+                    to the next instead of morphing.
 
   Openings (section 7.5), picked before first paint by the script in
   page.tsx, which writes <html data-intro>:
@@ -44,6 +53,17 @@ import { introVariant } from "./intro";
              the headline before first paint and shows it after the cap if the
              field never starts.
     none     the headline over the chaos field, immediately
+
+  The counter can wait on an Enter button (siteConfig.enterGate, ?enter=):
+    before   the counter shows 0 and waits; Enter starts the count
+    after    the counter waits at 100; Enter starts the dissolve
+  "Enter" turns sound on, "Enter without sound" turns it off. The click is
+  what lets the browser play the opening's sound (engine/sound.ts): a riser
+  under the count and a shimmer under the dissolve. Scrolling past the
+  opening skips the button. While a button is pending (<html data-enter>, set
+  before first paint) the CSS cap that clears the counter is stretched to
+  GATE_CAP_MS, so a page whose script stalls still clears; once the button
+  shows, the cap is off.
 */
 
 const chapters = heroProjects;
@@ -69,6 +89,8 @@ const DISSOLVE = { start: 400, end: 1700, reveal: 1300, settle: 3200 };
 const BAR_CELLS = 32;
 const BAR_RAMP = ".:-+*=%@#";
 const FIELD_FADE_MS = 900;
+/** With an Enter button pending, CSS clears the counter after this anyway (globals.css) */
+const GATE_CAP_MS = 12_000;
 const OPENING_VH = siteConfig.openingHeightVh;
 const CHAPTER_VH = siteConfig.chapterHeightVh;
 const TOTAL_VH = OPENING_VH + chapters.length * CHAPTER_VH;
@@ -109,12 +131,15 @@ export function Hero() {
   const barRestRef = useRef<HTMLSpanElement>(null);
   const chapterRefs = useRef<(HTMLElement | null)[]>([]);
   const tickRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  /** Set by the effect while the Enter button waits; true means with sound */
+  const enterRef = useRef<((withSound: boolean) => void) | null>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
     const sticky = stickyRef.current;
     const canvas = canvasRef.current;
-    if (!section || !sticky || !canvas) return;
+    if (!section || !sticky || !canvas || !heroLive()) return;
+    const counter = counterRef.current;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let field: ParticleField | null = null;
@@ -127,6 +152,9 @@ export function Hero() {
     const intro = introVariant();
     const nameIntro = intro === "name";
     const counterIntro = intro === "counter";
+    // The script runs the counter from here on, so CSS stops its timed reveal
+    // of the headline and waits for reveal() (globals.css).
+    if (counterIntro) document.documentElement.dataset.counterLive = "";
     /** 0 to 1: how far the opening's cloud has formed (the name, or "100") */
     let introT = 0;
     /** 0 to 1: how much of the chaos brightness boost is in play */
@@ -207,6 +235,7 @@ export function Hero() {
       const view = field.viewExtent();
       const wide = window.innerWidth >= 1024;
       const side = index % 2 === 0 ? 1 : -1;
+      const above = narrowLayouts[index];
       field.setLayout(
         naming
           ? introLayout
@@ -216,18 +245,25 @@ export function Hero() {
                 y: -0.05,
                 scale: Math.min(1.35, view.height * 0.72, view.width * 0.4),
               }
-            : {
+            : (above ?? {
                 x: 0,
                 y: view.height * 0.32,
                 scale: Math.min(1.35, view.width * 0.8, view.height * 0.5),
-              },
+              }),
       );
       field.setLayout({ rotation: reduce || naming ? 0 : (u - 0.5) * side * -0.7 });
 
       // The field thins out over the last chapter's drift, ready for the hand-off.
       const last = s - chapters.length;
       const behindOpening = current < 0 ? Math.max(openingField, ramp(0.5, 1, s)) : 1;
-      const opacity = (1 - 0.65 * ramp(0.75, 1, last)) * fieldIn * behindOpening;
+      // Under reduced motion each chapter is a still frame; it fades out and
+      // the next fades in, so the emblems never swap in plain sight.
+      const still = !reduce
+        ? 1
+        : current < 0
+          ? 1 - ramp(0.85, 1, s)
+          : ramp(0, 0.15, u) * (current === chapters.length - 1 ? 1 : 1 - ramp(0.85, 1, u));
+      const opacity = (1 - 0.65 * ramp(0.75, 1, last)) * fieldIn * behindOpening * still;
       // Spread-out chaos reads as faint specks, so the openings lift it while
       // the particles flow freely, and ease back as a shape forms or settles.
       // In ASCII, scattered particles mostly fall below the first glyph, so the
@@ -261,11 +297,40 @@ export function Hero() {
         scale: (r.width / c.width) * view.width,
       };
     };
-    const onResize = () => {
+    /*
+      Narrow screens: each emblem fills the space between the top bar and its
+      chapter's text, whatever the text's length. Measured once per resize
+      (offsetTop ignores the fade's transform), never during scroll.
+    */
+    let narrowLayouts: { x: number; y: number; scale: number }[] = [];
+    const measureNarrow = () => {
+      narrowLayouts = [];
+      if (!field || window.innerWidth >= 1024) return;
+      const height = canvas.clientHeight;
+      const view = field.viewExtent();
+      const toScene = (px: number) => (px / height) * 2 * view.height;
+      const nav = parseFloat(getComputedStyle(document.documentElement).fontSize) * 4;
+      const gap = 24;
+      chapterRefs.current.forEach((el, i) => {
+        const parent = el?.offsetParent as HTMLElement | null;
+        if (!el || !parent) return;
+        const top = nav + gap;
+        const bottom = parent.offsetTop + el.offsetTop - gap;
+        if (bottom - top < 80) return;
+        const half = Math.min((bottom - top) / 2, canvas.clientWidth * 0.4);
+        narrowLayouts[i] = {
+          x: 0,
+          y: view.height - toScene((top + bottom) / 2),
+          scale: Math.min(1.35, toScene(half)),
+        };
+      });
+    };
+    /* The canvas changed size: everything placed in scene units is placed again. */
+    const onFieldResize = () => {
       measureIntro();
+      measureNarrow();
       apply(spans);
     };
-    if (nameIntro) window.addEventListener("resize", onResize);
 
     /* Counter opening: real loading work, shown as 0 to 100. */
     let work = 0;
@@ -319,33 +384,104 @@ export function Hero() {
         barRestRef.current.textContent = ".".repeat(Math.max(0, BAR_CELLS - full - 1));
       }
     };
-    if (!counterDone) {
+    const finishCounter = () => {
+      counterDone = true;
+      if (fieldReady && !reduce) {
+        sound.dissolve();
+        dissolveCounter();
+      } else {
+        // No field yet (or reduced motion): a plain fade, and the particles
+        // stay away until scrolling heads for the first chapter.
+        openingField = 0;
+        counterRef.current?.classList.add("is-done");
+        reveal();
+        fadeField();
+      }
+    };
+    /** Counts from `start` (ms since navigation); 0 keeps the cap in step with globals.css. */
+    const runCounter = (start: number) => {
       let shown = 0;
       animate((now) => {
-        // Time since navigation, so the cap matches the CSS fallback in globals.css.
-        const target = Math.min(work, now / COUNTER_MIN_MS);
+        const t = now - start;
+        const target = Math.min(work, t / COUNTER_MIN_MS);
         shown += Math.max(0, target - shown) * 0.2;
         const finished =
-          (work >= 1 && now >= COUNTER_MIN_MS) || now >= siteConfig.introMaxMs || spans > 0.3;
+          (work >= 1 && t >= COUNTER_MIN_MS) || t >= siteConfig.introMaxMs || spans > 0.3;
         if (counterValueRef.current) {
           counterValueRef.current.textContent = String(finished ? 100 : Math.floor(shown * 100));
         }
         drawBar(finished ? 1 : shown);
+        sound.riser(finished ? 1 : shown);
         if (!finished) return true;
-        counterDone = true;
-        if (fieldReady && !reduce) {
-          dissolveCounter();
-        } else {
-          // No field yet (or reduced motion): a plain fade, and the particles
-          // stay away until scrolling heads for the first chapter.
-          openingField = 0;
-          counterRef.current?.classList.add("is-done");
-          reveal();
-          fadeField();
-        }
+        sound.riserStop();
+        if (gate === "after" && spans <= 0.3) waitForEnter(finishCounter);
+        else finishCounter();
         return false;
       });
+    };
+    /* Shows the Enter buttons and runs `next` once one is pressed, or the visitor scrolls on. */
+    const waitForEnter = (next: () => void) => {
+      const counter = counterRef.current;
+      counter?.classList.add("is-gated");
+      let waiting = true;
+      const go = () => {
+        if (!waiting) return;
+        waiting = false;
+        enterRef.current = null;
+        counter?.classList.remove("is-gated");
+        next();
+      };
+      enterRef.current = (withSound) => {
+        sound.choose(withSound);
+        go();
+      };
+      animate(() => {
+        if (spans > 0.3) go();
+        return waiting;
+      });
+    };
+    // Past the stretched cap, CSS has cleared the counter already: no button.
+    const gate = counterIntro && performance.now() < GATE_CAP_MS ? enterGate() : "none";
+    if (gate === "none") delete document.documentElement.dataset.enter;
+    if (!counterDone) {
+      if (gate === "before") waitForEnter(() => runCounter(performance.now()));
+      else runCounter(0);
     }
+
+    /*
+      The field failed to start or lost its context: switch to the static hero
+      for the rest of the visit. The page gets much shorter, so the scroll
+      trigger and every inline style the timeline wrote are dropped.
+    */
+    let isStatic = false;
+    const goStatic = () => {
+      if (isStatic) return;
+      isStatic = true;
+      cancelled = true;
+      const root = document.documentElement;
+      delete root.dataset.hero;
+      delete root.dataset.enter;
+      root.dataset.intro = "none";
+      sound.riserStop();
+      trigger.kill();
+      visibility.disconnect();
+      field?.dispose();
+      field = null;
+      sound.update(0, 0);
+      posterRef.current?.style.removeProperty("opacity");
+      for (const el of [openingRef.current, ...chapterRefs.current]) {
+        el?.style.removeProperty("opacity");
+        el?.style.removeProperty("transform");
+        el?.style.removeProperty("pointer-events");
+      }
+      ScrollTrigger.refresh();
+    };
+    const onContextLost = (e: Event) => {
+      e.preventDefault();
+      console.warn("Hero field lost its WebGL context; showing the static hero.");
+      goStatic();
+    };
+    canvas.addEventListener("webglcontextlost", onContextLost);
 
     gsap.registerPlugin(ScrollTrigger);
     const trigger = ScrollTrigger.create({
@@ -419,10 +555,13 @@ export function Hero() {
         clouds,
         ink: css.getPropertyValue("--text").trim(),
         accent: css.getPropertyValue("--accent").trim(),
-        ascii: DEFAULT_ASCII,
+        // A still frame has nothing to smooth towards, so cells settle at once.
+        ascii: reduce ? { ...DEFAULT_ASCII, smoothMs: 0 } : DEFAULT_ASCII,
         asciiEmblems: sources.map((source) => source.emblem.kind !== "text"),
         asciiFont: mono,
         pointer: finePointer && !reduce,
+        still: reduce,
+        onResize: onFieldResize,
         onReady: () => {
           if (cancelled) return;
           step();
@@ -432,16 +571,15 @@ export function Hero() {
         },
       });
       field.setRunning(onScreen);
+      // The constructor's first resize runs before `field` is assigned.
+      measureNarrow();
       emblem = -1;
       apply(spans);
       if (posterRef.current) posterRef.current.style.opacity = "0";
     })().catch((e: unknown) => {
-      // The poster stays up; the hero text still plays without the canvas.
-      console.warn("Hero field unavailable:", e);
-      work = 1;
-      // The name opening needs the field; fall back to the plain headline.
-      if (nameIntro) document.documentElement.dataset.intro = "none";
-      if (counterIntro) reveal();
+      if (cancelled) return;
+      console.warn("Hero field unavailable; showing the static hero.", e);
+      goStatic();
     });
 
     /* Name opening: the particles gather into the name and the headline steps aside. */
@@ -462,10 +600,15 @@ export function Hero() {
 
     return () => {
       cancelled = true;
+      canvas.removeEventListener("webglcontextlost", onContextLost);
       delete document.documentElement.dataset.nameLive;
       delete document.documentElement.dataset.nameFormed;
       delete document.documentElement.dataset.introRevealed;
-      window.removeEventListener("resize", onResize);
+      delete document.documentElement.dataset.counterLive;
+      // data-enter belongs to the pre-paint script, so it stays for the next mount.
+      counter?.classList.remove("is-gated");
+      enterRef.current = null;
+      sound.riserStop();
       trigger.kill();
       visibility.disconnect();
       field?.dispose();
@@ -474,7 +617,7 @@ export function Hero() {
 
   /* A keyboard user tabbing into a hidden chapter is scrolled to it. */
   const reveal = (slug: string, el: HTMLElement | null) => {
-    if (!el || Number(el.style.opacity) > 0.5) return;
+    if (!el || !heroLive() || Number(el.style.opacity) > 0.5) return;
     const anchor = document.getElementById(`chapter-${slug}`);
     if (anchor) scrollToElement(anchor);
   };
@@ -484,11 +627,12 @@ export function Hero() {
       ref={sectionRef}
       id="top"
       aria-label="Introduction"
-      className="relative"
+      className="hero relative"
       style={
         {
-          height: `calc(${TOTAL_VH}vh + 100dvh)`,
+          "--hero-h": `calc(${TOTAL_VH}vh + 100dvh)`,
           "--intro-cap": `${siteConfig.introMaxMs + 300}ms`,
+          "--gate-cap": `${GATE_CAP_MS}ms`,
         } as React.CSSProperties
       }
     >
@@ -498,12 +642,16 @@ export function Hero() {
           key={p.slug}
           id={`chapter-${p.slug}`}
           aria-hidden="true"
-          className="absolute left-0 h-px w-px"
+          className="hero-anchor absolute left-0 h-px w-px"
           style={{ top: `${OPENING_VH + (i + 0.55) * CHAPTER_VH}vh` }}
         />
       ))}
 
-      <div ref={stickyRef} data-cursor="field" className="sticky top-0 h-[100dvh] overflow-hidden">
+      <div
+        ref={stickyRef}
+        data-cursor="field"
+        className="hero-stage sticky top-0 h-[100dvh] overflow-hidden"
+      >
         <div
           ref={posterRef}
           aria-hidden="true"
@@ -515,11 +663,16 @@ export function Hero() {
         <canvas
           ref={canvasRef}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full"
+          // Large viewport height: the canvas keeps its size while a phone's
+          // address bar slides in and out, so the renderer is not resized mid-scroll.
+          className="hero-canvas pointer-events-none absolute inset-x-0 top-0 h-[100lvh] w-full"
         />
 
         <div className="relative mx-auto h-full max-w-[1400px] px-[var(--gutter)]">
-          <div ref={openingRef} className="absolute inset-x-[var(--gutter)] bottom-12 lg:bottom-16">
+          <div
+            ref={openingRef}
+            className="hero-opening absolute inset-x-[var(--gutter)] bottom-12 lg:bottom-16"
+          >
             <h1 ref={nameRef} className="hero-name transition-opacity duration-700">
               {first}
               <br />
@@ -543,7 +696,7 @@ export function Hero() {
                 chapterRefs.current[i] = el;
               }}
               aria-labelledby={`chapter-title-${p.slug}`}
-              className={`pointer-events-none absolute right-[var(--gutter)] bottom-12 left-[var(--gutter)] opacity-0 lg:top-1/2 lg:bottom-auto lg:w-[min(34rem,40%)] lg:-translate-y-1/2 ${
+              className={`hero-chapter pointer-events-none absolute right-[var(--gutter)] bottom-12 left-[var(--gutter)] opacity-0 lg:top-1/2 lg:bottom-auto lg:w-[min(34rem,40%)] lg:-translate-y-1/2 ${
                 // Odd chapters sit on the right, clear of the progress rail.
                 i % 2 === 0 ? "lg:right-auto" : "lg:right-[calc(var(--gutter)+4rem)] lg:left-auto"
               }`}
@@ -573,7 +726,7 @@ export function Hero() {
         {siteConfig.features.progressRail && (
           <nav
             aria-label="Chapters"
-            className="absolute top-1/2 right-[var(--gutter)] z-[var(--z-rail)] hidden -translate-y-1/2 md:block"
+            className="hero-rail absolute top-1/2 right-[var(--gutter)] z-[var(--z-rail)] hidden -translate-y-1/2 md:block"
           >
             <ol className="flex flex-col items-end gap-3">
               {chapters.map((p, i) => (
@@ -598,20 +751,35 @@ export function Hero() {
             and faded out by CSS at the cap even if the script never runs. */}
         <div
           ref={counterRef}
-          aria-hidden="true"
           className="intro-counter bg-bg absolute inset-0 z-[var(--z-rail)] flex-col justify-end px-[var(--gutter)] pb-12 lg:pb-16"
-          style={{ animationDelay: `${siteConfig.introMaxMs + 300}ms` }}
         >
           <div className="mx-auto w-full max-w-[1400px]">
-            <p className="intro-count tabular-nums">
+            <p aria-hidden="true" className="intro-count tabular-nums">
               <span ref={counterValueRef}>0</span>
             </p>
-            <p className="type-mono mt-6 overflow-hidden whitespace-pre">
+            <p aria-hidden="true" className="type-mono mt-6 overflow-hidden whitespace-pre">
               <span ref={barFillRef} className="text-text" />
               <span ref={barRestRef} className="text-dim">
                 {".".repeat(BAR_CELLS)}
               </span>
             </p>
+            {/* Shown by CSS while the counter waits (.is-gated). */}
+            <div className="intro-enter mt-10 flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => enterRef.current?.(true)}
+                className="btn btn-primary btn-lg"
+              >
+                Enter
+              </button>
+              <button
+                type="button"
+                onClick={() => enterRef.current?.(false)}
+                className="btn btn-ghost btn-lg"
+              >
+                Enter without sound
+              </button>
+            </div>
           </div>
         </div>
       </div>

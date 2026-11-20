@@ -8,7 +8,7 @@ const subscribe = (onChange: () => void) => {
   return sound.subscribe(onChange);
 };
 
-/* Sound on or off, in the pinned nav. Off by default (PLAN.md, section 7.6). */
+/* Sound on or off, in the pinned nav. On by default; on phones only the dot shows. */
 export function SoundToggle() {
   const on = useSyncExternalStore(
     subscribe,
@@ -20,6 +20,7 @@ export function SoundToggle() {
     <button
       type="button"
       aria-pressed={on}
+      aria-label="Sound"
       onClick={() => sound.toggle()}
       className="btn btn-ghost gap-2 px-3"
     >
@@ -27,7 +28,7 @@ export function SoundToggle() {
         aria-hidden="true"
         className={`size-1.5 rounded-full ${on ? "bg-accent" : "border-dim border"}`}
       />
-      Sound
+      <span className="hidden sm:inline">Sound</span>
     </button>
   );
 }

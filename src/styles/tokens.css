@@ -9,9 +9,12 @@
   --bg: #0a0b0d;
   --surface: #111317;
   --line: #23262d;
-  --dim: #5a5f68;
+  /* Raised from #5a5f68 in Phase 7: dim text is small labels, and needs 4.5:1 on --bg (4.9:1) */
+  --dim: #7a7f88;
   --muted: #8b9099;
   --text: #e9eaec;
+  /* Glyphs of the quiet field behind the project list. Decoration, not text. */
+  --field-ink: #5a5f68;
 
   /* Accent candidates. --accent is the one the site uses. */
   --accent-amber: #ffb020;

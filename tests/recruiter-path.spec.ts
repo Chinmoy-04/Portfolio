@@ -93,9 +93,38 @@ test("?intro= picks the opening, and the counter clears by its cap", async ({ pa
   await expect(page.locator("html")).toHaveAttribute("data-intro", "none");
   await expect(page.locator(".intro-counter")).toBeHidden();
 
-  await page.goto("/?intro=counter");
+  await page.goto("/?intro=counter&enter=none");
   await expect(page.locator("html")).toHaveAttribute("data-intro", "counter");
   // The cap is 3 s; the CSS fallback adds 0.3 s and a 0.5 s fade.
   await expect(page.locator(".intro-counter")).toBeHidden({ timeout: 4500 });
   await expect(page.getByRole("heading", { name: "Chinmoy Jyoti Bora", level: 1 })).toBeVisible();
+});
+
+test("without WebGL the hero is just the name, then the project list", async ({ page }) => {
+  await page.goto("/?webgl=0");
+  await expect(page.locator("html")).not.toHaveAttribute("data-hero", "live");
+  await expect(page.locator("html")).toHaveAttribute("data-intro", "none");
+  await expect(page.getByRole("heading", { name: "Chinmoy Jyoti Bora", level: 1 })).toBeVisible();
+  const hero = page.getByRole("region", { name: "Introduction" });
+  await expect(hero.locator("canvas")).toBeHidden();
+  await expect(hero.getByRole("article")).toHaveCount(0);
+  // The project list starts right after the first screen.
+  const projectsTop = await page
+    .getByRole("heading", { name: "Projects", level: 2 })
+    .evaluate((el) => el.getBoundingClientRect().top / window.innerHeight);
+  expect(projectsTop).toBeLessThan(1.5);
+});
+
+test("the Enter button holds the counter until pressed", async ({ page }) => {
+  for (const enter of ["before", "after"]) {
+    await page.goto(`/?intro=counter&enter=${enter}`);
+    const button = page.getByRole("button", { name: "Enter", exact: true });
+    await expect(button).toBeVisible({ timeout: 12_000 });
+    // Past the cap, the counter is still waiting.
+    await page.waitForTimeout(3500);
+    await expect(page.locator(".intro-counter")).toBeVisible();
+    await button.click();
+    await expect(page.locator(".intro-counter")).toBeHidden({ timeout: 8000 });
+    await expect(page.getByRole("heading", { name: "Chinmoy Jyoti Bora", level: 1 })).toBeVisible();
+  }
 });

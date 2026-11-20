@@ -22,12 +22,7 @@ export function PinnedNav({ variant = "home" }: { variant?: "home" | "work" }) {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">
-          {/* Hidden on phones, where the name needs the room. */}
-          {variant === "home" && siteConfig.features.sound && (
-            <span className="hidden sm:flex">
-              <SoundToggle />
-            </span>
-          )}
+          {variant === "home" && siteConfig.features.sound && <SoundToggle />}
           {profile.links.cv && (
             <a href={profile.links.cv} className="btn btn-ghost" download>
               CV
