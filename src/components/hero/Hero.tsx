@@ -8,7 +8,9 @@ import { profile } from "@/content/profile";
 import { domainLabels, heroProjects } from "@/content/projects";
 import { siteConfig } from "@/content/site.config";
 import type { ParticleField } from "@/engine/particles/ParticleField";
+import { sound } from "@/engine/sound";
 import { scrollToElement } from "@/lib/scroll";
+import { introVariant } from "./intro";
 
 /*
   The hero (PLAN.md, section 7.4). One tall section with a sticky layer that
@@ -28,9 +30,45 @@ import { scrollToElement } from "@/lib/scroll";
   The headline and chapter text are real HTML, server rendered. The engine is
   imported after mount, in its own chunk. Without WebGL the static ASCII
   poster stays up and the text still plays.
+
+  Openings (section 7.5), picked before first paint by the script in
+  page.tsx, which writes <html data-intro>:
+    counter  a 0 to 100 counter that tracks the real loading work, capped at
+             siteConfig.introMaxMs. At 100 the digits hand over to particles
+             in the same shape, which dissolve into the flowing field; then
+             the headline fades in out of the background. Without the field
+             it simply fades out and the headline fades in.
+    name     only flowing particles at first; then they assemble into the
+             name, in the headline's place and size, and the role line fades
+             in. Scrolling scatters the name again. CSS (globals.css) hides
+             the headline before first paint and shows it after the cap if the
+             field never starts.
+    none     the headline over the chaos field, immediately
 */
 
 const chapters = heroProjects;
+/**
+ * Index of the opening's own cloud, packed after the chapter emblems: the name
+ * for the name opening, "100" for the counter.
+ */
+const INTRO_EMBLEM = chapters.length;
+/** The headline's two lines: first name, then the rest */
+const [first, ...rest] = profile.name.split(" ");
+/** The counter never finishes sooner than this, so it reads as a count, not a flash */
+const COUNTER_MIN_MS = 1400;
+/** How long the particles flow freely before they gather into the name */
+const NAME_DELAY_MS = 1200;
+const NAME_ASSEMBLE_MS = 1800;
+/** Extra brightness for the free-flowing particles in the openings (1 = double) */
+const CHAOS_BOOST = 1.6;
+/** Extra brightness for the ASCII chaos between the opening and the first chapter */
+const ASCII_CHAOS_BOOST = 3;
+/** Counter hand-over, in ms from 100: particles dissolve, headline fades in, boost settles */
+const DISSOLVE = { start: 400, end: 1700, reveal: 1300, settle: 3200 };
+/** Width of the counter's ASCII bar, in characters */
+const BAR_CELLS = 32;
+const BAR_RAMP = ".:-+*=%@#";
+const FIELD_FADE_MS = 900;
 const OPENING_VH = siteConfig.openingHeightVh;
 const CHAPTER_VH = siteConfig.chapterHeightVh;
 const TOTAL_VH = OPENING_VH + chapters.length * CHAPTER_VH;
@@ -64,6 +102,11 @@ export function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const posterRef = useRef<HTMLDivElement>(null);
   const openingRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
+  const counterRef = useRef<HTMLDivElement>(null);
+  const counterValueRef = useRef<HTMLSpanElement>(null);
+  const barFillRef = useRef<HTMLSpanElement>(null);
+  const barRestRef = useRef<HTMLSpanElement>(null);
   const chapterRefs = useRef<(HTMLElement | null)[]>([]);
   const tickRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
@@ -78,6 +121,37 @@ export function Hero() {
     let emblem = -1;
     let spans = 0;
     let active = -2;
+    let onScreen = true;
+    let cancelled = false;
+
+    const intro = introVariant();
+    const nameIntro = intro === "name";
+    const counterIntro = intro === "counter";
+    /** 0 to 1: how far the opening's cloud has formed (the name, or "100") */
+    let introT = 0;
+    /** 0 to 1: how much of the chaos brightness boost is in play */
+    let boost = nameIntro ? 1 : 0;
+    /**
+     * 0 to 1: the field's brightness behind the opening text. The counter fades
+     * it to 0 as the name appears; scrolling towards the first chapter brings
+     * the particles back.
+     */
+    let openingField = 1;
+    /** The name opening's name has formed at least once */
+    let nameFormed = false;
+    /** Where the opening's cloud sits, in scene units, measured from its HTML twin */
+    let introLayout = { x: 0, y: 0, scale: 1 };
+    /** 0 to 1: field brightness. The counter holds it at 0 until it is done. */
+    let fieldIn = intro === "counter" ? 0 : 1;
+    let lastProgress = 0;
+    let lastEmblem = -1;
+    /** Runs step every frame until it returns false or the hero unmounts. */
+    const animate = (step: (now: number) => boolean) => {
+      const run = (now: number) => {
+        if (!cancelled && step(now)) requestAnimationFrame(run);
+      };
+      requestAnimationFrame(run);
+    };
 
     /* Everything visible is a function of one number: scroll position in spans. */
     const apply = (s: number) => {
@@ -110,14 +184,23 @@ export function Hero() {
       }
 
       if (!field) return;
-      const index = Math.max(0, current);
+      // The name and counter openings show their own cloud, drawn as plain points
+      // (text breaks up in ASCII). Once it has dissolved for good (the counter
+      // after its fade-out, the name once formed and scrolled apart) the chaos
+      // prints in ASCII like the chapters, all the way to the first emblem.
+      const introProgress = introT * (1 - ramp(0.02, 0.45, s));
+      const introShown = counterIntro
+        ? introT > 0 || openingField > 0
+        : nameIntro && (!nameFormed || introProgress > 0);
+      const naming = introShown && current < 0;
+      const index = naming ? INTRO_EMBLEM : Math.max(0, current);
       if (index !== emblem) {
         emblem = index;
         field.setEmblem(index);
       }
 
       const u = current < 0 ? 0 : clamp01(s - (1 + current));
-      const progress = current < 0 ? 0 : reduce ? 1 : morph(u);
+      const progress = naming ? introProgress : current < 0 ? 0 : reduce ? 1 : morph(u);
       field.setProgress(progress);
 
       // Emblem on alternate sides on wide screens, above the text on narrow ones.
@@ -125,24 +208,144 @@ export function Hero() {
       const wide = window.innerWidth >= 1024;
       const side = index % 2 === 0 ? 1 : -1;
       field.setLayout(
-        wide
-          ? {
-              x: side * view.width * 0.46,
-              y: -0.05,
-              scale: Math.min(1.35, view.height * 0.72, view.width * 0.4),
-            }
-          : {
-              x: 0,
-              y: view.height * 0.32,
-              scale: Math.min(1.35, view.width * 0.8, view.height * 0.5),
-            },
+        naming
+          ? introLayout
+          : wide
+            ? {
+                x: side * view.width * 0.46,
+                y: -0.05,
+                scale: Math.min(1.35, view.height * 0.72, view.width * 0.4),
+              }
+            : {
+                x: 0,
+                y: view.height * 0.32,
+                scale: Math.min(1.35, view.width * 0.8, view.height * 0.5),
+              },
       );
-      field.setLayout({ rotation: reduce ? 0 : (u - 0.5) * side * -0.7 });
+      field.setLayout({ rotation: reduce || naming ? 0 : (u - 0.5) * side * -0.7 });
 
       // The field thins out over the last chapter's drift, ready for the hand-off.
       const last = s - chapters.length;
-      field.setOpacity(1 - 0.65 * ramp(0.75, 1, last));
+      const behindOpening = current < 0 ? Math.max(openingField, ramp(0.5, 1, s)) : 1;
+      const opacity = (1 - 0.65 * ramp(0.75, 1, last)) * fieldIn * behindOpening;
+      // Spread-out chaos reads as faint specks, so the openings lift it while
+      // the particles flow freely, and ease back as a shape forms or settles.
+      // In ASCII, scattered particles mostly fall below the first glyph, so the
+      // stretch from the opening into the first chapter is lifted too, easing
+      // off as the first emblem gathers.
+      const lift = naming
+        ? CHAOS_BOOST * boost * (1 - progress)
+        : ASCII_CHAOS_BOOST * (1 - ramp(0.9, 1.3, s));
+      field.setOpacity(opacity * (1 + lift));
+
+      // Sound follows the morph; a tone when an emblem locks into place.
+      const locked = progress >= 0.999;
+      if (locked && (lastProgress < 0.999 || index !== lastEmblem)) sound.chime(index);
+      lastProgress = progress;
+      lastEmblem = index;
+      sound.update(progress, onScreen ? opacity : 0);
     };
+
+    /* The opening's cloud takes the place and size of its HTML twin's text. */
+    const measureIntro = () => {
+      const el = nameIntro ? nameRef.current : counterValueRef.current;
+      if (!field || !el) return;
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const r = range.getBoundingClientRect();
+      const c = canvas.getBoundingClientRect();
+      const view = field.viewExtent();
+      introLayout = {
+        x: ((r.left + r.width / 2 - c.left) / c.width - 0.5) * 2 * view.width,
+        y: (0.5 - (r.top + r.height / 2 - c.top) / c.height) * 2 * view.height,
+        scale: (r.width / c.width) * view.width,
+      };
+    };
+    const onResize = () => {
+      measureIntro();
+      apply(spans);
+    };
+    if (nameIntro) window.addEventListener("resize", onResize);
+
+    /* Counter opening: real loading work, shown as 0 to 100. */
+    let work = 0;
+    let fieldReady = false;
+    let counterDone = !counterIntro;
+    let fading = false;
+    const fadeField = () => {
+      if (fading || !counterDone || !fieldReady) return;
+      fading = true;
+      const start = performance.now();
+      animate((now) => {
+        fieldIn = reduce ? 1 : ramp(0, 1, (now - start) / FIELD_FADE_MS);
+        apply(spans);
+        return fieldIn < 1;
+      });
+    };
+    /* The headline fades in out of the background (globals.css). */
+    const reveal = () => {
+      document.documentElement.dataset.introRevealed = "";
+    };
+    /* At 100: the digits hand over to particles in their shape, which dissolve. */
+    const dissolveCounter = () => {
+      fading = true;
+      measureIntro();
+      introT = 1;
+      boost = 1;
+      fieldIn = 1;
+      apply(spans);
+      counterRef.current?.classList.add("is-done");
+      const start = performance.now();
+      let revealed = false;
+      animate((now) => {
+        const t = now - start;
+        introT = 1 - ramp(DISSOLVE.start, DISSOLVE.end, t);
+        boost = 1 - ramp(DISSOLVE.end, DISSOLVE.settle, t);
+        openingField = 1 - ramp(DISSOLVE.reveal, DISSOLVE.settle, t);
+        if (!revealed && t >= DISSOLVE.reveal) {
+          revealed = true;
+          reveal();
+        }
+        apply(spans);
+        return t < DISSOLVE.settle;
+      });
+    };
+    const drawBar = (amount: number) => {
+      const cells = amount * BAR_CELLS;
+      const full = Math.floor(cells);
+      const edge = full < BAR_CELLS ? BAR_RAMP[Math.floor((cells - full) * BAR_RAMP.length)] : "";
+      if (barFillRef.current) barFillRef.current.textContent = "#".repeat(full) + edge;
+      if (barRestRef.current) {
+        barRestRef.current.textContent = ".".repeat(Math.max(0, BAR_CELLS - full - 1));
+      }
+    };
+    if (!counterDone) {
+      let shown = 0;
+      animate((now) => {
+        // Time since navigation, so the cap matches the CSS fallback in globals.css.
+        const target = Math.min(work, now / COUNTER_MIN_MS);
+        shown += Math.max(0, target - shown) * 0.2;
+        const finished =
+          (work >= 1 && now >= COUNTER_MIN_MS) || now >= siteConfig.introMaxMs || spans > 0.3;
+        if (counterValueRef.current) {
+          counterValueRef.current.textContent = String(finished ? 100 : Math.floor(shown * 100));
+        }
+        drawBar(finished ? 1 : shown);
+        if (!finished) return true;
+        counterDone = true;
+        if (fieldReady && !reduce) {
+          dissolveCounter();
+        } else {
+          // No field yet (or reduced motion): a plain fade, and the particles
+          // stay away until scrolling heads for the first chapter.
+          openingField = 0;
+          counterRef.current?.classList.add("is-done");
+          reveal();
+          fadeField();
+        }
+        return false;
+      });
+    }
 
     gsap.registerPlugin(ScrollTrigger);
     const trigger = ScrollTrigger.create({
@@ -156,14 +359,13 @@ export function Hero() {
 
     // Render only while the sticky layer is on screen. The first report usually
     // arrives before the field exists, so it is kept and applied once it does.
-    let onScreen = true;
     const visibility = new IntersectionObserver(([entry]) => {
       onScreen = entry.isIntersecting;
       field?.setRunning(onScreen);
+      apply(spans);
     });
     visibility.observe(sticky);
 
-    let cancelled = false;
     (async () => {
       const [{ detectTier, isTier, TIERS }, { loadEmblem }, { ParticleField }, { DEFAULT_ASCII }] =
         await Promise.all([
@@ -172,6 +374,22 @@ export function Hero() {
           import("@/engine/particles/ParticleField"),
           import("@/engine/ascii/AsciiPass"),
         ]);
+      // Loading steps for the counter: imports, each cloud, the glyph font, shaders.
+      const sources = chapters.map((p) => ({
+        emblem: p.hero!.emblem,
+        name: p.name,
+        accentRegion: p.hero!.accentRegion,
+      }));
+      if (nameIntro || counterIntro)
+        sources.push({
+          emblem: { kind: "text" },
+          name: nameIntro ? `${first}\n${rest.join(" ")}`.toUpperCase() : "100",
+          accentRegion: undefined,
+        });
+      const steps = sources.length + 3;
+      let done = 1;
+      const step = () => (work = ++done / steps);
+      work = done / steps;
       const forced = new URLSearchParams(window.location.search).get("tier");
       const tier = isTier(forced) ? forced : detectTier();
 
@@ -179,15 +397,19 @@ export function Hero() {
       const display = css.getPropertyValue("--font-archivo").trim();
       const mono = css.getPropertyValue("--font-jetbrains").trim();
       const clouds = await Promise.all(
-        chapters.map((p) =>
-          loadEmblem(
-            { emblem: p.hero!.emblem, name: p.name, accentRegion: p.hero!.accentRegion },
-            TIERS[tier].particles,
-            { fontFamily: display },
-          ),
+        sources.map((source, i) =>
+          loadEmblem(source, TIERS[tier].particles, {
+            fontFamily: display,
+            // The opening's text matches its HTML twin: wide cut, lines flush left.
+            ...(i === INTRO_EMBLEM && { fontStretch: "expanded", align: "left" }),
+          }).then((cloud) => {
+            step();
+            return cloud;
+          }),
         ),
       );
       await document.fonts.load(`500 12px ${mono}`);
+      step();
       if (cancelled) return;
 
       const finePointer = window.matchMedia("(pointer: fine)").matches;
@@ -198,9 +420,16 @@ export function Hero() {
         ink: css.getPropertyValue("--text").trim(),
         accent: css.getPropertyValue("--accent").trim(),
         ascii: DEFAULT_ASCII,
-        asciiEmblems: chapters.map((p) => p.hero!.emblem.kind !== "text"),
+        asciiEmblems: sources.map((source) => source.emblem.kind !== "text"),
         asciiFont: mono,
         pointer: finePointer && !reduce,
+        onReady: () => {
+          if (cancelled) return;
+          step();
+          fieldReady = true;
+          fadeField();
+          if (nameIntro) assembleName();
+        },
       });
       field.setRunning(onScreen);
       emblem = -1;
@@ -209,10 +438,34 @@ export function Hero() {
     })().catch((e: unknown) => {
       // The poster stays up; the hero text still plays without the canvas.
       console.warn("Hero field unavailable:", e);
+      work = 1;
+      // The name opening needs the field; fall back to the plain headline.
+      if (nameIntro) document.documentElement.dataset.intro = "none";
+      if (counterIntro) reveal();
     });
+
+    /* Name opening: the particles gather into the name and the headline steps aside. */
+    const assembleName = () => {
+      const root = document.documentElement;
+      root.dataset.nameLive = "";
+      measureIntro();
+      const start = performance.now() + (reduce ? 0 : NAME_DELAY_MS);
+      animate((now) => {
+        introT = reduce ? 1 : clamp01((now - start) / NAME_ASSEMBLE_MS);
+        apply(spans);
+        if (introT < 1) return true;
+        root.dataset.nameFormed = "";
+        nameFormed = true;
+        return false;
+      });
+    };
 
     return () => {
       cancelled = true;
+      delete document.documentElement.dataset.nameLive;
+      delete document.documentElement.dataset.nameFormed;
+      delete document.documentElement.dataset.introRevealed;
+      window.removeEventListener("resize", onResize);
       trigger.kill();
       visibility.disconnect();
       field?.dispose();
@@ -226,15 +479,18 @@ export function Hero() {
     if (anchor) scrollToElement(anchor);
   };
 
-  const [first, ...rest] = profile.name.split(" ");
-
   return (
     <section
       ref={sectionRef}
       id="top"
       aria-label="Introduction"
       className="relative"
-      style={{ height: `calc(${TOTAL_VH}vh + 100dvh)` }}
+      style={
+        {
+          height: `calc(${TOTAL_VH}vh + 100dvh)`,
+          "--intro-cap": `${siteConfig.introMaxMs + 300}ms`,
+        } as React.CSSProperties
+      }
     >
       {/* Chapter anchors for the progress rail, placed mid-hold. */}
       {chapters.map((p, i) => (
@@ -251,7 +507,7 @@ export function Hero() {
         <div
           ref={posterRef}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-[var(--nav-h)] bottom-1/3 flex items-center justify-center opacity-70 transition-opacity duration-700 lg:justify-end lg:pr-[var(--gutter)]"
+          className="hero-poster pointer-events-none absolute inset-x-0 top-[var(--nav-h)] bottom-1/3 flex items-center justify-center opacity-70 transition-opacity duration-700 lg:justify-end lg:pr-[var(--gutter)]"
         >
           <AsciiSample className="text-[7px] sm:text-[9px] lg:text-[11px] xl:text-[12px]" />
         </div>
@@ -264,12 +520,12 @@ export function Hero() {
 
         <div className="relative mx-auto h-full max-w-[1400px] px-[var(--gutter)]">
           <div ref={openingRef} className="absolute inset-x-[var(--gutter)] bottom-12 lg:bottom-16">
-            <h1 className="hero-name">
+            <h1 ref={nameRef} className="hero-name transition-opacity duration-700">
               {first}
               <br />
               {rest.join(" ")}
             </h1>
-            <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="hero-sub mt-8 flex flex-col gap-6 transition-opacity duration-700 lg:flex-row lg:items-end lg:justify-between">
               <p className="max-w-[34ch] text-lg leading-snug lg:text-xl">{profile.roleLine}</p>
               {/* "View projects" lives in the pinned top bar, so the hero does not repeat it. */}
               <p className="type-mono text-muted max-w-[44ch] lg:text-right">
@@ -337,6 +593,27 @@ export function Hero() {
             </ol>
           </nav>
         )}
+
+        {/* Counter opening. Shown before first paint by CSS when <html data-intro="counter">,
+            and faded out by CSS at the cap even if the script never runs. */}
+        <div
+          ref={counterRef}
+          aria-hidden="true"
+          className="intro-counter bg-bg absolute inset-0 z-[var(--z-rail)] flex-col justify-end px-[var(--gutter)] pb-12 lg:pb-16"
+          style={{ animationDelay: `${siteConfig.introMaxMs + 300}ms` }}
+        >
+          <div className="mx-auto w-full max-w-[1400px]">
+            <p className="intro-count tabular-nums">
+              <span ref={counterValueRef}>0</span>
+            </p>
+            <p className="type-mono mt-6 overflow-hidden whitespace-pre">
+              <span ref={barFillRef} className="text-text" />
+              <span ref={barRestRef} className="text-dim">
+                {".".repeat(BAR_CELLS)}
+              </span>
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -12,7 +12,7 @@ export const siteConfig = {
   /** Accent colour. Locked to amber on 17 Nov 2026 (Phase 0 checkpoint). */
   accent: "amber" as AccentName,
 
-  /** Opening shown on first load. Overridable with ?intro=counter|name|none. */
+  /** Opening shown on first load. Locked to counter on 20 Nov 2026 (Phase 6 checkpoint). Overridable with ?intro=counter|name|none. */
   intro: "counter" as IntroVariant,
 
   /** Longest the loading counter may run, in milliseconds. */

@@ -1,4 +1,5 @@
 import { Hero } from "@/components/hero/Hero";
+import { introScript } from "@/components/hero/intro";
 import { FieldRegion } from "@/components/motion/FieldRegion";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { ProjectList } from "@/components/projects/ProjectList";
@@ -14,6 +15,8 @@ import { projects } from "@/content/projects";
 export default function HomePage() {
   return (
     <>
+      {/* Picks the opening before first paint (?intro=counter|name|none). */}
+      <script dangerouslySetInnerHTML={{ __html: introScript }} />
       <SmoothScroll />
       <SkipLink />
       <PinnedNav />

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { profile } from "@/content/profile";
+import { siteConfig } from "@/content/site.config";
+import { SoundToggle } from "./SoundToggle";
 
 /*
   Always-visible top bar. "View projects" is clickable from the first painted
@@ -20,6 +22,12 @@ export function PinnedNav({ variant = "home" }: { variant?: "home" | "work" }) {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">
+          {/* Hidden on phones, where the name needs the room. */}
+          {variant === "home" && siteConfig.features.sound && (
+            <span className="hidden sm:flex">
+              <SoundToggle />
+            </span>
+          )}
           {profile.links.cv && (
             <a href={profile.links.cv} className="btn btn-ghost" download>
               CV

@@ -35,7 +35,7 @@ Success means:
 | Sections | Hero, Projects, About, Stack, Contact |
 | Colour | Off-white glyphs on near-black, one accent |
 | Typography | Heavy grotesque headline, monospace labels |
-| Opening | Three switchable variants: loading counter (default for evaluation), particles form the name, name over noise |
+| Opening | Three switchable variants: loading counter (default, locked 20 Nov 2026 at the Phase 6 checkpoint), particles form the name, name over noise |
 | Mobile | Lighter version: fewer particles, no cursor effects; still frame under reduced motion |
 | Personal | Open-to-work line, CV download, photo (tried in ASCII first) |
 | Contact | Email, LinkedIn, GitHub links. No form |
@@ -420,6 +420,6 @@ Needed by Phase 8:
 ## 13. Still open
 
 - Whether the photo works in ASCII (decided in Phase 1 by trying it).
-- The default opening (decided in Phase 6 by comparing all three).
+- ~~The default opening~~: decided 20 Nov 2026, the loading counter. At 100 its digits dissolve into particles and the name fades in out of the background; the other two stay available through `?intro=`.
 - Custom domain (later; no code change needed).
 - Shape-aware glyph matching (7.2, Step B). Phase 4 ships the luminance ramp only; the frame budget is judged at the Phase 4 checkpoint before taking this on.

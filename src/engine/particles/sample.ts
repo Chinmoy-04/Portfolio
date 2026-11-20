@@ -153,21 +153,39 @@ export async function sampleSvg(
 export function sampleText(
   text: string,
   count: number,
-  { fontFamily = "sans-serif", ...options }: RasterOptions & { fontFamily?: string } = {},
+  {
+    fontFamily = "sans-serif",
+    fontStretch = "normal",
+    align = "center",
+    ...options
+  }: RasterOptions & {
+    fontFamily?: string;
+    fontStretch?: CanvasFontStretch;
+    /** How lines sit against each other */
+    align?: "center" | "left";
+  } = {},
 ): Cloud {
+  // "\n" in the text starts a new line; lines are aligned by `align`.
+  const lines = text.split("\n");
   const fontPx = 160;
+  const linePx = fontPx * 0.95;
   const font = `900 ${fontPx}px ${fontFamily}`;
   const measure = canvas2d(1, 1);
   measure.font = font;
-  const width = Math.ceil(measure.measureText(text).width) + fontPx;
-  const height = Math.ceil(fontPx * 1.6);
+  measure.fontStretch = fontStretch;
+  const textWidth = Math.max(...lines.map((line) => measure.measureText(line).width));
+  const width = Math.ceil(textWidth) + fontPx;
+  const height = Math.ceil(linePx * (lines.length - 1) + fontPx * 1.6);
 
   const ctx = canvas2d(width, height);
   ctx.font = font;
-  ctx.textAlign = "center";
+  ctx.fontStretch = fontStretch;
+  ctx.textAlign = align;
   ctx.textBaseline = "middle";
   ctx.fillStyle = "#fff";
-  ctx.fillText(text, width / 2, height / 2);
+  const top = height / 2 - (linePx * (lines.length - 1)) / 2;
+  const x = align === "left" ? fontPx / 2 : width / 2;
+  lines.forEach((line, i) => ctx.fillText(line, x, top + i * linePx));
   return sampleRaster(ctx.getImageData(0, 0, width, height), null, count, {
     edgeShare: 0.25,
     ...options,

@@ -47,6 +47,8 @@ export type ParticleFieldOptions = {
   asciiFont?: string;
   /** Let the pointer pull the ASCII image. Leave off for touch and reduced motion. */
   pointer?: boolean;
+  /** Called once the shaders have compiled and the first frame can draw */
+  onReady?: () => void;
 };
 
 export type EmblemLayout = {
@@ -175,6 +177,7 @@ export class ParticleField {
       .catch(() => undefined)
       .then(() => {
         this.ready = true;
+        this.options.onReady?.();
         if (this.running) this.frame = requestAnimationFrame(this.loop);
       });
   }

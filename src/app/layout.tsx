@@ -31,6 +31,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
+      // The home page's intro script sets data-intro before hydration.
+      suppressHydrationWarning
       data-accent={siteConfig.accent}
       className={`${archivo.variable} ${jetbrains.variable} antialiased`}
     >

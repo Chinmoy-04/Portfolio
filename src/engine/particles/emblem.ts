@@ -13,7 +13,11 @@ export type EmblemSource = {
 export async function loadEmblem(
   { emblem, name, accentRegion }: EmblemSource,
   count: number,
-  { fontFamily }: { fontFamily?: string } = {},
+  {
+    fontFamily,
+    fontStretch,
+    align,
+  }: { fontFamily?: string; fontStretch?: CanvasFontStretch; align?: "center" | "left" } = {},
 ): Promise<Cloud> {
   switch (emblem.kind) {
     case "svg":
@@ -23,7 +27,7 @@ export async function loadEmblem(
     case "text":
       // The canvas falls back to another face silently if the font is not loaded yet.
       if (fontFamily) await document.fonts.load(`900 160px ${fontFamily}`);
-      return sampleText(name, count, { fontFamily });
+      return sampleText(name, count, { fontFamily, fontStretch, align });
     case "glb":
       throw new Error("GLB emblems are not supported yet");
   }

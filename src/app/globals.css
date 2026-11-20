@@ -173,6 +173,84 @@ body {
   text-transform: uppercase;
 }
 
+/* Counter opening (Hero.tsx). Hidden unless <html data-intro="counter">. The
+   animation is a safety net: it hides the counter at the cap even without JS. */
+.intro-counter {
+  display: none;
+}
+[data-intro="counter"] .intro-counter {
+  display: flex;
+  animation: intro-cap 0.5s var(--ease-out) forwards;
+}
+.intro-counter.is-done {
+  animation: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.5s var(--ease-out),
+    visibility 0s 0.5s;
+}
+@keyframes intro-cap {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.intro-count {
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 1rem + 16vw, 15rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+}
+
+/* After the counter, the headline and role line fade in out of the background
+   once JS sets data-intro-revealed. Until then they are hidden; at the cap
+   they fade in anyway, in case the script never gets there. Two keyframe
+   names, so switching from the delayed one restarts the animation. */
+[data-intro="counter"]:not([data-intro-revealed]) :is(.hero-name, .hero-sub) {
+  animation: intro-surface 0.6s var(--ease-out) var(--intro-cap, 3.3s) both;
+}
+[data-intro="counter"][data-intro-revealed] :is(.hero-name, .hero-sub) {
+  animation: intro-surface-now 1.1s var(--ease-out) both;
+}
+[data-intro="counter"][data-intro-revealed] .hero-sub {
+  animation-delay: 0.25s;
+}
+@keyframes intro-surface {
+  from {
+    opacity: 0;
+    filter: blur(14px);
+    transform: scale(0.96);
+  }
+}
+@keyframes intro-surface-now {
+  from {
+    opacity: 0;
+    filter: blur(14px);
+    transform: scale(0.96);
+  }
+}
+
+/* Name opening (Hero.tsx). Only the field shows at first: the poster, headline
+   and role line start hidden. Once the field is live (data-name-live) the
+   particles stand in for the headline and the role line waits for the name to
+   form (data-name-formed). If the field never starts, everything fades in at
+   the cap (--intro-cap, set on the hero). */
+[data-intro="name"]:not([data-name-live]) :is(.hero-poster, .hero-name, .hero-sub) {
+  animation: intro-in 0.6s var(--ease-out) var(--intro-cap, 3.3s) both;
+}
+[data-intro="name"][data-name-live] .hero-name,
+[data-intro="name"][data-name-live]:not([data-name-formed]) .hero-sub {
+  opacity: 0;
+}
+@keyframes intro-in {
+  from {
+    opacity: 0;
+  }
+}
+
 /* Top bar */
 .nav-bar {
   z-index: var(--z-nav);

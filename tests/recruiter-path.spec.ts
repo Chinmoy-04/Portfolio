@@ -87,3 +87,15 @@ test("the hero has one chapter per project, each linking to its row", async ({ p
   await expect(links.first()).toHaveAttribute("href", "#p-subspacead");
   await expect(links.last()).toHaveAttribute("href", "#p-german-air");
 });
+
+test("?intro= picks the opening, and the counter clears by its cap", async ({ page }) => {
+  await page.goto("/?intro=none");
+  await expect(page.locator("html")).toHaveAttribute("data-intro", "none");
+  await expect(page.locator(".intro-counter")).toBeHidden();
+
+  await page.goto("/?intro=counter");
+  await expect(page.locator("html")).toHaveAttribute("data-intro", "counter");
+  // The cap is 3 s; the CSS fallback adds 0.3 s and a 0.5 s fade.
+  await expect(page.locator(".intro-counter")).toBeHidden({ timeout: 4500 });
+  await expect(page.getByRole("heading", { name: "Chinmoy Jyoti Bora", level: 1 })).toBeVisible();
+});
