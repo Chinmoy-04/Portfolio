@@ -712,7 +712,7 @@ export function Hero() {
               <button
                 type="button"
                 onClick={() => enterRef.current?.(false)}
-                className="btn btn-ghost btn-lg"
+                className="btn btn-ghost btn-lg hidden sm:inline-flex"
               >
                 Enter without sound
               </button>

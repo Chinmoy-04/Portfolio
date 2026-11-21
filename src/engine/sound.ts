@@ -26,6 +26,9 @@ const CHIME_HZ = [440, 494, 554, 659, 740, 880, 988];
 const RISER_GAIN = 0.035;
 const DISSOLVE_GAIN = 0.08;
 
+/** Phones get no sound at all: same width as Tailwind's `sm` breakpoint. */
+const isPhone = () => window.matchMedia("(max-width: 639px)").matches;
+
 type Listener = (on: boolean) => void;
 
 class Sound {
@@ -65,7 +68,7 @@ class Sound {
   /** The visitor's answer to the opening's Enter button. Called from the click. */
   choose(on: boolean) {
     this.set(on, { remember: true });
-    if (on) this.ensureContext();
+    if (on && !isPhone()) this.ensureContext();
   }
 
   /** Counter opening: a tone that climbs with the count. progress is 0 to 1. */
@@ -182,6 +185,7 @@ class Sound {
   }
 
   private set(on: boolean, { remember }: { remember: boolean }) {
+    if (on && isPhone()) return;
     if (on === this.on) return;
     this.on = on;
     if (remember) {
