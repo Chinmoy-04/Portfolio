@@ -9,6 +9,13 @@ import { projects } from "@/content/projects";
 export const metadata: Metadata = {
   title: "Projects",
   description: `${profile.name}: ${profile.roleLine}`,
+  openGraph: {
+    url: "/work",
+    // Setting openGraph here replaces the root one, so the share image is named again.
+    images: "/opengraph-image.png",
+    title: `Projects | ${profile.name}`,
+    description: `${profile.name}: ${profile.roleLine}`,
+  },
 };
 
 /*

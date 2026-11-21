@@ -10,13 +10,31 @@ import { IdentityColumn } from "@/components/sections/IdentityColumn";
 import { Stack } from "@/components/sections/Stack";
 import { PinnedNav } from "@/components/ui/PinnedNav";
 import { SkipLink } from "@/components/ui/SkipLink";
+import { profile } from "@/content/profile";
 import { projects } from "@/content/projects";
+import { siteConfig } from "@/content/site.config";
+
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.name,
+  jobTitle: profile.roleShort,
+  description: profile.roleLine,
+  url: siteConfig.url,
+  email: `mailto:${profile.links.email}`,
+  address: { "@type": "PostalAddress", addressLocality: "Deggendorf", addressCountry: "DE" },
+  sameAs: [profile.links.github, profile.links.linkedin],
+};
 
 export default function HomePage() {
   return (
     <>
       {/* Picks the opening before first paint (?intro=counter|name|none). */}
       <script dangerouslySetInnerHTML={{ __html: introScript }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c") }}
+      />
       <SmoothScroll />
       <SkipLink />
       <PinnedNav />

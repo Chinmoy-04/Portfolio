@@ -390,6 +390,8 @@ Each phase ends at a checkpoint where you review a running preview before the ne
 - Metadata, Open Graph image, sitemap, analytics.
 - Production deploy; GitHub profile README and LinkedIn updated to point at the site (your action).
 - **Checkpoint:** live.
+- Done 20 Nov 2026: Open Graph and Twitter cards on `/` and `/work`, share image (a still of the SubspaceAD chapter with the name and role line), `sitemap.xml`, `robots.txt` (keeps `/debug/` and `/specimen` out), JSON-LD `Person`, Vercel Web Analytics (cookie-free, behind `features.analytics`). Also fixed: "SubspaceAD" split mid-word in its chapter title below about 1400 px wide; chapter titles now shrink to fit their column.
+- Still waiting on you: CV, portrait, real metrics, the open CONFIRM items in `docs/projects-draft.md`, and the Vercel connection.
 
 ### Where the effort sits
 

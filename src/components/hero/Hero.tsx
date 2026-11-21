@@ -733,7 +733,7 @@ export function Hero() {
                 chapterRefs.current[i] = el;
               }}
               aria-labelledby={`chapter-title-${p.slug}`}
-              className={`hero-chapter pointer-events-none absolute right-[var(--gutter)] bottom-12 left-[var(--gutter)] opacity-0 lg:top-1/2 lg:bottom-auto lg:w-[min(34rem,40%)] lg:-translate-y-1/2 ${
+              className={`hero-chapter @container pointer-events-none absolute right-[var(--gutter)] bottom-12 left-[var(--gutter)] opacity-0 lg:top-1/2 lg:bottom-auto lg:w-[min(34rem,40%)] lg:-translate-y-1/2 ${
                 // Odd chapters sit on the right, clear of the progress rail.
                 i % 2 === 0 ? "lg:right-auto" : "lg:right-[calc(var(--gutter)+4rem)] lg:left-auto"
               }`}
@@ -745,7 +745,12 @@ export function Hero() {
                 <span className="ml-4">{domainLabels[p.domain]}</span>
                 <span className="ml-4">{p.year}</span>
               </p>
-              <h2 id={`chapter-title-${p.slug}`} className="type-h1 mt-4">
+              {/* Capped to the column so a one-word name like "SubspaceAD" never splits mid-word. */}
+              <h2
+                id={`chapter-title-${p.slug}`}
+                className="type-h1 mt-4"
+                style={{ fontSize: "min(var(--step-h1), 12.5cqi)" }}
+              >
                 {p.name}
               </h2>
               <p className="mt-5 max-w-[42ch] text-lg leading-snug">{p.oneLine}</p>

@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
 import { Cursor } from "@/components/ui/Cursor";
@@ -25,6 +26,15 @@ export const metadata: Metadata = {
     template: `%s | ${profile.name}`,
   },
   description: profile.roleLine,
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: profile.name,
+    title: `${profile.name} | ${profile.roleShort}`,
+    description: profile.roleLine,
+    locale: "en",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -39,6 +49,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-[100dvh]">
         {children}
         {siteConfig.features.customCursor && <Cursor />}
+        {/* Vercel Web Analytics: cookie-free, no consent banner needed. */}
+        {siteConfig.features.analytics && <Analytics />}
       </body>
     </html>
   );
