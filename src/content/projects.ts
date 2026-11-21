@@ -62,6 +62,13 @@ export const projects: Project[] = [
     domain: "vision",
     summary:
       "A from-scratch reproduction of the SubspaceAD paper on MVTec-AD and VisA, for k in {1, 2, 4} shots across 5 seeds, with the paper's ablations and a web demo.",
+    // From results/results.json in the SubspaceAD repo (mean over 5 seeds).
+    metrics: [
+      { label: "MVTec-AD image AUROC, 4-shot (paper 98.0)", value: "97.4" },
+      { label: "VisA image AUROC, 4-shot (paper 94.7)", value: "94.0" },
+      { label: "MVTec-AD pixel AUROC, 4-shot (paper 97.9)", value: "97.9" },
+      { label: "Points below the paper, image AUROC", value: "0.6 to 1.4" },
+    ],
     stack: ["Python", "PyTorch", "DINOv2", "FastAPI", "Next.js"],
     links: {
       repo: "https://github.com/Chinmoy-04/Subspacead",
@@ -80,6 +87,7 @@ export const projects: Project[] = [
       "Agents that refund customers and pay suppliers through PayPal, with every decision reviewed in a control room.",
     year: 2026,
     domain: "agents",
+    role: "Solo build",
     summary:
       "Agents run a one-person shop: refunds go through the PayPal Agent Toolkit and supplier payments through PayPal Payouts. Each decision lands in a live AG Grid control room where the owner can approve, edit or roll it back. Built for the PayPal AI Hackathon.",
     stack: ["TypeScript", "Node.js", "Fastify", "React", "AG Grid", "PayPal Agent Toolkit"],
@@ -97,7 +105,23 @@ export const projects: Project[] = [
     domain: "agents",
     summary:
       "Investigates synthetic paint-shop quality events using LangGraph, retrieval over documents and SQL over process data, and ends in action tickets that a human approves.",
-    stack: ["Python", "LangGraph", "RAG", "SQL"],
+    // From evaluation/last_results.json: 16 synthetic labelled cases, no vision model.
+    metrics: [
+      { label: "Routing accuracy, 16 synthetic cases", value: "1.0" },
+      { label: "SOP recall@3", value: "1.0" },
+      { label: "Tickets without approval", value: "0" },
+    ],
+    stack: [
+      "Python",
+      "LangGraph",
+      "LlamaIndex",
+      "Chroma",
+      "Ollama (Qwen2.5 3B)",
+      "n8n",
+      "FastAPI",
+      "SQLite",
+      "Streamlit",
+    ],
     links: { repo: "https://github.com/Chinmoy-04/paintops" },
     hero: {
       emblem: { kind: "svg", src: "/emblems/options/paintops-spray.svg" },
@@ -113,7 +137,25 @@ export const projects: Project[] = [
     domain: "rag",
     summary:
       "A production-style evaluation engine for retrieval pipelines: document ingestion, synthetic question generation, Ragas scoring, and a dashboard for comparing configurations.",
-    stack: ["Ragas"],
+    // From run 5 in data/rag_eval.db: 20 curated questions (written without an LLM), all seven pipelines.
+    metrics: [
+      { label: "Pipelines compared", value: "7" },
+      { label: "Context recall, hybrid+", value: "0.73 to 0.91" },
+      { label: "Faithfulness, hybrid+", value: "0.55 to 0.64" },
+      { label: "Curated test questions, 86-doc corpus", value: "20" },
+    ],
+    stack: [
+      "Python",
+      "FastAPI",
+      "LlamaIndex",
+      "Chroma",
+      "BM25",
+      "Ragas",
+      "Ollama (Llama 3.1 8B judge)",
+      "LiteLLM",
+      "SQLite",
+      "React",
+    ],
     links: {
       repo: "https://github.com/Chinmoy-04/Rag-eval-engine",
       demo: "https://rag-eval-engine.vercel.app",
@@ -132,6 +174,13 @@ export const projects: Project[] = [
     domain: "vision",
     summary:
       "A real-time gesture controller using YOLO11n on the Sony IMX500 NPU of a Raspberry Pi 5. Controls presentations, media, the cursor and the desktop from the camera alone.",
+    // From the repo README on GitHub (checked 21 Nov 2026).
+    metrics: [
+      { label: "Gestures", value: "6" },
+      { label: "On-device frame rate", value: "15 FPS" },
+      { label: "Precision", value: "95.9%" },
+      { label: "mAP50", value: "98.1%" },
+    ],
     stack: ["Python", "Ultralytics YOLO11n", "Sony IMX500", "Raspberry Pi 5"],
     links: { repo: "https://github.com/Chinmoy-04/air-gesture-controller" },
     hero: {
@@ -177,8 +226,15 @@ export const projects: Project[] = [
       "NO2 and PM10 air pollution against respiratory mortality across Germany's 16 states, 2019 to 2023.",
     year: 2026,
     domain: "data",
+    role: "Course project, team of three",
     summary:
       "An analysis of air pollution versus age-standardised respiratory mortality for all 16 German states, done in R notebooks and presented in an interactive Next.js dashboard.",
+    // From german-air.vercel.app (checked 21 Nov 2026): Pearson r over 16 states x 5 years.
+    metrics: [
+      { label: "NO₂ vs age-standardised mortality", value: "r +0.31" },
+      { label: "Same data, crude death rates", value: "r −0.29" },
+      { label: "States × years", value: "16 × 5" },
+    ],
     stack: ["R", "tidyverse", "Next.js", "TypeScript"],
     links: {
       repo: "https://github.com/Chinmoy-04/German-air",

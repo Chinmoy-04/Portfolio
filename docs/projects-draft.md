@@ -2,7 +2,7 @@
 
 Source: your public GitHub repositories and profile README, read on 16 Nov 2026.
 Everything here is a draft for you to correct. Anything marked **CONFIRM** is a guess or a gap.
-No metrics are included yet: only real numbers you supply will go on the site.
+Only real numbers go on the site. Metrics and stacks were filled in from the project folders on D: on 21 Nov 2026.
 
 Order below is the order on the site.
 
@@ -19,7 +19,7 @@ Order below is the order on the site.
 - **Demo:** https://subspacead.vercel.app
 - **Paper:** https://arxiv.org/abs/2602.23013
 - **Hero emblem:** an industrial part with one patch glowing as the anomaly
-- **Metrics:** **CONFIRM** (e.g. image-level AUROC on MVTec-AD at k=4, and how close it is to the paper)
+- **Metrics (from `D:\SubspaceAD\results\results.json`, 21 Nov 2026):** image AUROC at 4 shots 97.4 on MVTec-AD (paper 98.0) and 94.0 on VisA (paper 94.7); pixel AUROC 97.9 on MVTec-AD (paper 97.9); image AUROC within 0.6 to 1.4 points of the paper at every k.
 - **Year:** 2026
 
 ## 2. ShopCrew
@@ -30,9 +30,9 @@ Order below is the order on the site.
 - **Summary:** Agents run a one-person shop: refunds go through the PayPal Agent Toolkit and supplier payments through PayPal Payouts. Each decision lands in a live AG Grid control room where the owner can approve, edit or roll it back. Built for the PayPal AI Hackathon.
 - **Stack:** TypeScript, Node.js, Fastify, React, AG Grid, PayPal Agent Toolkit
 - **Repo:** https://github.com/Chinmoy-04/ShopCrew-PayPal
-- **Demo:** none listed. **CONFIRM** if there is a video or hosted demo
+- **Demo:** none found on D: (no video link or hosted URL; the repo has a Render config). **CONFIRM** if there is one
 - **Hero emblem:** a five-node agent graph with one node paused for approval
-- **Role:** **CONFIRM** solo or team, and any hackathon result
+- **Role:** solo build (confirmed 21 Nov 2026). Hackathon judging ends 15 Dec 2026, so no result yet
 - **Year:** 2026
 
 ## 3. PaintOps
@@ -41,9 +41,10 @@ Order below is the order on the site.
 - **Domain:** agents
 - **One line:** Agentic investigation of quality deviations in an automotive paint shop.
 - **Summary:** Investigates synthetic paint-shop quality events using LangGraph, retrieval over documents and SQL over process data, and ends in action tickets that a human approves.
-- **Stack:** Python, LangGraph, RAG, SQL. **CONFIRM** the vector store and model used
+- **Stack:** Python, LangGraph, LlamaIndex, Chroma, Ollama (Qwen2.5 3B by default), all-MiniLM-L6-v2 embeddings, n8n, FastAPI, SQLite, Streamlit
+- **Metrics (from `evaluation/last_results.json`):** 16 synthetic labelled cases; classification and routing accuracy 1.0, SOP recall@3 1.0, 0 tickets without approval. Synthetic set only, no vision model
 - **Repo:** https://github.com/Chinmoy-04/paintops
-- **Demo:** none listed
+- **Demo:** a demo GIF in the repo (`docs/demo.gif`), no video
 - **Hero emblem:** a car body silhouette with a flagged defect patch
 - **Year:** 2026
 
@@ -53,7 +54,9 @@ Order below is the order on the site.
 - **Domain:** rag
 - **One line:** Ingest documents, generate synthetic Q&A, score RAG pipelines with Ragas, and compare runs in a dashboard.
 - **Summary:** A production-style evaluation engine for retrieval pipelines: document ingestion, synthetic question generation, Ragas scoring, and a dashboard for comparing configurations.
-- **Stack:** Ragas. **CONFIRM** the rest (LlamaIndex, Chroma, FastAPI?)
+- **Stack:** Python, FastAPI, LlamaIndex, Chroma, BM25 hybrid retrieval, Ragas, LiteLLM, SQLite, React, Vite
+- **Metrics (run 5 in `data/rag_eval.db`, 20 curated questions written without an LLM):** 7 pipelines compared; hybrid+ raised context recall from 0.73 (baseline) to 0.91 and faithfulness from 0.55 to 0.64
+- **Models (checked 21 Nov 2026):** answers from `gpt-oss-20b` on Groq; Ragas scoring by a local Llama 3.1 8B judge on Ollama. Both the README and the CV are right
 - **Repo:** https://github.com/Chinmoy-04/Rag-eval-engine
 - **Demo:** https://rag-eval-engine.vercel.app
 - **Hero emblem:** stacked document pages collapsing into a score gauge
@@ -69,7 +72,7 @@ Order below is the order on the site.
 - **Repo:** https://github.com/Chinmoy-04/air-gesture-controller
 - **Demo:** none listed. **CONFIRM** if there is a video; this project benefits most from one
 - **Hero emblem:** a hand skeleton with 21 keypoints
-- **Metrics:** **CONFIRM** (frames per second on device, number of gestures)
+- **Metrics (repo README on GitHub, checked 21 Nov 2026):** 6 gestures; 95.9% precision, 96.9% recall, 98.1% mAP50; 15 FPS on the Pi with inference on the IMX500's NPU. Built as an Embedded AI course project at TH Deggendorf
 - **Year:** 2026
 
 ## 6. LightRAG Local
@@ -97,7 +100,8 @@ Order below is the order on the site.
 - **Repo:** https://github.com/Chinmoy-04/German-air
 - **Demo:** https://german-air.vercel.app
 - **Hero emblem:** the outline of Germany with some states shaded
-- **Metrics:** **CONFIRM** the headline finding in one sentence
+- **Role:** course project, built with two teammates
+- **Finding (from german-air.vercel.app, 21 Nov 2026):** after age-standardisation, NO₂ tracks respiratory mortality across the 16 states (Pearson r +0.31), while crude rates point the other way (r −0.29). Site design and build by you; research with Adham Abdelhalim and Odinaka Obioha
 - **Year:** 2026
 
 ---

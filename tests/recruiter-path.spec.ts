@@ -144,9 +144,9 @@ test("the Enter button comes right after the top bar in tab order", async ({ pag
   await page.goto("/?intro=counter&enter=before");
   const enter = page.getByRole("button", { name: "Enter", exact: true });
   await expect(enter).toBeVisible({ timeout: 12_000 });
-  // Skip link, name, Sound, View projects, then Enter.
+  // Skip link, name, Sound, CV, View projects, then Enter.
   await page.keyboard.press("Tab", { delay: 0 });
-  for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
+  for (let i = 0; i < 5; i++) await page.keyboard.press("Tab");
   await expect(enter).toBeFocused();
 });
 

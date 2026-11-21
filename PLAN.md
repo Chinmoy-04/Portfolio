@@ -391,7 +391,10 @@ Each phase ends at a checkpoint where you review a running preview before the ne
 - Production deploy; GitHub profile README and LinkedIn updated to point at the site (your action).
 - **Checkpoint:** live.
 - Done 20 Nov 2026: Open Graph and Twitter cards on `/` and `/work`, share image (a still of the SubspaceAD chapter with the name and role line), `sitemap.xml`, `robots.txt` (keeps `/debug/` and `/specimen` out), JSON-LD `Person`, Vercel Web Analytics (cookie-free, behind `features.analytics`). Also fixed: "SubspaceAD" split mid-word in its chapter title below about 1400 px wide; chapter titles now shrink to fit their column.
-- Still waiting on you: CV, portrait, real metrics, the open CONFIRM items in `docs/projects-draft.md`, and the Vercel connection.
+- Done 21 Nov 2026: real metrics for six of seven projects (ShopCrew has none yet), fuller stacks, ShopCrew marked solo, German Air's finding from its live site.
+- Done 21 Nov 2026: the one-page CV is live as `public/Chinmoy-Jyoti-Bora-CV.pdf` (CV links in the top bar from 640 px up, in Contact and on `/work`).
+- Done 21 Nov 2026: the portrait is in About as a duotone cut-out (page black through amber to off-white), built by `scripts/portrait.py` from `public/portrait.jpg`. The ASCII version was tried and set aside: at About size it lost the likeness. Section 13 question settled.
+- Still to do: connect Vercel (your action), then the production deploy.
 
 ### Where the effort sits
 
@@ -428,7 +431,7 @@ Needed by Phase 8:
 
 ## 13. Still open
 
-- Whether the photo works in ASCII (decided in Phase 1 by trying it).
+- ~~Whether the photo works in ASCII~~: tried 21 Nov 2026; the duotone was chosen.
 - ~~The default opening~~: decided 20 Nov 2026, the loading counter. At 100 its digits dissolve into particles and the name fades in out of the background; the other two stay available through `?intro=`.
 - Enter button for the counter opening (added 20 Nov 2026): browsers only play sound after a click, so the button is that click, and the opening has its own sound (a riser under the count, a shimmer under the dissolve). Picked 20 Nov 2026: after the counter (it waits at 100). `?enter=before` (waits at 0) and `?enter=none` stay available.
 - Custom domain (later; no code change needed).

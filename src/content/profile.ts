@@ -20,8 +20,8 @@ export const profile = {
     email: "chinmoy.bora177@gmail.com",
     github: "https://github.com/Chinmoy-04",
     linkedin: "https://www.linkedin.com/in/chinmoy-jyoti-bora-38787b227",
-    /** Set to "/cv.pdf" once the file is in public/. CV links stay hidden until then. */
-    cv: null as string | null,
+    /** The one-page CV in public/. Set to null to hide every CV link. */
+    cv: "/Chinmoy-Jyoti-Bora-CV.pdf" as string | null,
   },
 
   stack: [

@@ -23,10 +23,13 @@ export function PinnedNav({ variant = "home" }: { variant?: "home" | "work" }) {
 
         <div className="flex shrink-0 items-center gap-2">
           {variant === "home" && siteConfig.features.sound && <SoundToggle />}
+          {/* Hidden on phones so the name keeps its room; Contact (and the /work header) carry the CV there. */}
           {profile.links.cv && (
-            <a href={profile.links.cv} className="btn btn-ghost" download>
-              CV
-            </a>
+            <span className="hidden sm:contents">
+              <a href={profile.links.cv} className="btn btn-ghost" download>
+                CV
+              </a>
+            </span>
           )}
           {variant === "home" ? (
             <a href="#projects" className="btn btn-primary">
