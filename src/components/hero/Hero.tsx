@@ -101,6 +101,8 @@ function toSpans(progress: number) {
   return vh < OPENING_VH ? vh / OPENING_VH : 1 + (vh - OPENING_VH) / CHAPTER_VH;
 }
 
+/** How formed the last emblem stays as the hero hands off to the project list */
+const LAST_FLOOR = 0.6;
 const GATHER = 0.35;
 const HOLD = 0.7;
 
@@ -228,7 +230,17 @@ export function Hero() {
       }
 
       const u = current < 0 ? 0 : clamp01(s - (1 + current));
-      const progress = naming ? introProgress : current < 0 ? 0 : reduce ? 1 : morph(u);
+      // The last emblem only loosens, never scatters fully: fully spread chaos
+      // falls below the first ASCII glyph and the screen would read as blank
+      // until the project list arrives.
+      const floor = current === chapters.length - 1 ? LAST_FLOOR : 0;
+      const progress = naming
+        ? introProgress
+        : current < 0
+          ? 0
+          : reduce
+            ? 1
+            : Math.max(floor, morph(u));
       field.setProgress(progress);
 
       // Emblem on alternate sides on wide screens, above the text on narrow ones.
@@ -253,7 +265,7 @@ export function Hero() {
       );
       field.setLayout({ rotation: reduce || naming ? 0 : (u - 0.5) * side * -0.7 });
 
-      // The field thins out over the last chapter's drift, ready for the hand-off.
+      // The field thins a little over the last chapter's drift, ready for the hand-off.
       const last = s - chapters.length;
       const behindOpening = current < 0 ? Math.max(openingField, ramp(0.5, 1, s)) : 1;
       // Under reduced motion each chapter is a still frame; it fades out and
@@ -263,15 +275,18 @@ export function Hero() {
         : current < 0
           ? 1 - ramp(0.85, 1, s)
           : ramp(0, 0.15, u) * (current === chapters.length - 1 ? 1 : 1 - ramp(0.85, 1, u));
-      const opacity = (1 - 0.65 * ramp(0.75, 1, last)) * fieldIn * behindOpening * still;
+      const opacity = (1 - 0.2 * ramp(0.75, 1, last)) * fieldIn * behindOpening * still;
       // Spread-out chaos reads as faint specks, so the openings lift it while
       // the particles flow freely, and ease back as a shape forms or settles.
       // In ASCII, scattered particles mostly fall below the first glyph, so the
       // stretch from the opening into the first chapter is lifted too, easing
       // off as the first emblem gathers.
+      // The last emblem's loosening is lifted the same way, so it holds up
+      // all the way down to the project list.
+      const loosening = floor > 0 && u > HOLD ? (1 - progress) / (1 - floor) : 0;
       const lift = naming
         ? CHAOS_BOOST * boost * (1 - progress)
-        : ASCII_CHAOS_BOOST * (1 - ramp(0.9, 1.3, s));
+        : ASCII_CHAOS_BOOST * Math.max(1 - ramp(0.9, 1.3, s), loosening);
       field.setOpacity(opacity * (1 + lift));
 
       // Sound follows the morph; a tone when an emblem locks into place.
