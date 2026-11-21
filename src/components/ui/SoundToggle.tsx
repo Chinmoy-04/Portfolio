@@ -22,7 +22,7 @@ export function SoundToggle() {
       aria-pressed={on}
       aria-label="Sound"
       onClick={() => sound.toggle()}
-      className="btn btn-ghost hidden gap-2 px-3 sm:inline-flex"
+      className="btn btn-ghost gap-2 px-3 max-sm:hidden!"
     >
       <span
         aria-hidden="true"
