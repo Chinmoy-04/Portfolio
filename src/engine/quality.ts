@@ -1,5 +1,5 @@
 /*
-  Device tiers and the automatic quality drop (PLAN.md, section 7.1 and 9).
+  Device tiers and the automatic quality drop (docs/PLAN.md, section 7.1 and 9).
 
   A tier is picked once at start from what the browser reports. While the
   engine runs, a FrameMonitor watches the frame rate and asks for the next

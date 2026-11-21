@@ -1,5 +1,5 @@
 /*
-  Hero sound (PLAN.md, section 7.6). Synthesised in the browser, no files.
+  Hero sound (docs/PLAN.md, section 7.6). Synthesised in the browser, no files.
 
   A soft band of filtered noise sits under the hero. As particles gather the
   band narrows and rises, so the noise starts to sound like a pitch; when an

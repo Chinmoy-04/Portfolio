@@ -1,7 +1,7 @@
 import { CanvasTexture, NearestFilter } from "three";
 
 /*
-  Glyph atlas (PLAN.md, section 7.2). Every glyph is drawn once into one row
+  Glyph atlas (docs/PLAN.md, section 7.2). Every glyph is drawn once into one row
   of cells, each exactly one character cell in device pixels, so the post pass
   can copy texels one to one and the glyphs stay crisp.
 */

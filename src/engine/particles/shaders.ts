@@ -1,5 +1,5 @@
 /*
-  Morph shader (PLAN.md, section 7.1). Everything moves on the GPU; the CPU
+  Morph shader (docs/PLAN.md, section 7.1). Everything moves on the GPU; the CPU
   supplies progress and time each frame.
 
   Each particle has a chaos position (a fixed seed pushed around by a curl

@@ -1,7 +1,7 @@
 /*
   Static ASCII preview for the specimen page: a hex nut emerging from sparse
   noise, with one patch flagged in the accent colour. It stands in for the
-  real particle and ASCII engine (PLAN.md, phases 3 and 4) so the accent can
+  real particle and ASCII engine (docs/PLAN.md, phases 3 and 4) so the accent can
   be judged on the kind of image it will actually sit on.
 */
 

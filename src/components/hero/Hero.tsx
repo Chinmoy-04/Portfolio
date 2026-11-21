@@ -13,7 +13,7 @@ import { getLenis, scrollToElement, setScrollHold } from "@/lib/scroll";
 import { ensureIntro, enterGate, heroLive, introVariant } from "./intro";
 
 /*
-  The hero (PLAN.md, section 7.4). One tall section with a sticky layer that
+  The hero (docs/PLAN.md, section 7.4). One tall section with a sticky layer that
   holds the particle canvas, the headline, one text block per chapter and the
   progress rail. Scroll is measured in "spans": span 0 is the opening
   (siteConfig.openingHeightVh tall), span 1 + i is chapter i
@@ -30,7 +30,7 @@ import { ensureIntro, enterGate, heroLive, introVariant } from "./intro";
   The headline and chapter text are real HTML, server rendered. The engine is
   imported after mount, in its own chunk.
 
-  Fallbacks (PLAN.md, section 9):
+  Fallbacks (docs/PLAN.md, section 9):
     static          No WebGL 2, no JavaScript, ?webgl=0, or the field fails to
                     start or loses its context: the page drops <html
                     data-hero="live"> and CSS (globals.css) shows the ASCII

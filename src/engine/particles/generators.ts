@@ -1,7 +1,7 @@
 import { canvas2d, type Cloud, makeRng, type Rng, sampleRaster } from "./sample";
 
 /*
-  Generator emblems (PLAN.md, section 6). Each one draws its emblem on a
+  Generator emblems (docs/PLAN.md, section 6). Each one draws its emblem on a
   512 px square canvas twice: once whole, once with only its accent region.
   The two rasters are sampled the same way as SVG emblems, so generators and
   SVGs share one look.

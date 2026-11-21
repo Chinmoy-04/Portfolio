@@ -1,6 +1,6 @@
 /*
   Emblem sampling: turns an emblem into a point cloud of exactly `count`
-  points (PLAN.md, section 7.1).
+  points (docs/PLAN.md, section 7.1).
 
   A cloud is a Float32Array of `count * 4` numbers: x, y, z, accent.
   x and y are centred and scaled so the longer side spans -1 to 1, y up.

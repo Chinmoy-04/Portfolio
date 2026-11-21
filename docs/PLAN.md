@@ -108,8 +108,8 @@ Query parameters and anchors on `/`:
 
 ```
 D:\Portfolio
-├─ PLAN.md
 ├─ docs/
+│  ├─ PLAN.md
 │  └─ projects-draft.md          draft copy for the seven projects
 ├─ public/
 │  ├─ cv.pdf                     supplied by you

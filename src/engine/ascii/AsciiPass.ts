@@ -17,7 +17,7 @@ import { bakeAtlas, glyphList } from "./atlas";
 import { cellFragment, postFragment, quadVertex } from "./shaders";
 
 /*
-  ASCII pass (PLAN.md, section 7.2). Three steps per frame:
+  ASCII pass (docs/PLAN.md, section 7.2). Three steps per frame:
     1. scene  particles drawn to an offscreen target (R intensity, G accent)
     2. cell   one fragment per character cell: pointer offset, then a glyph
               picked from a luminance ramp

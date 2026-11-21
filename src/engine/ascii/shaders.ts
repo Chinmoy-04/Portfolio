@@ -1,5 +1,5 @@
 /*
-  ASCII pass shaders (PLAN.md, section 7.2). All coordinates are device px
+  ASCII pass shaders (docs/PLAN.md, section 7.2). All coordinates are device px
   from the bottom left of the drawing buffer, matching gl_FragCoord.
 */
 

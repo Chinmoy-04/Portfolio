@@ -8,7 +8,7 @@ import {
 import { FullScreenQuad } from "three/addons/postprocessing/Pass.js";
 
 /*
-  Pointer displacement field (PLAN.md, section 7.3). One texel per character
+  Pointer displacement field (docs/PLAN.md, section 7.3). One texel per character
   cell, ping-ponged between two targets each frame:
     R, G  how far that cell's sample point is pulled, in device px
     B     trail strength, 0 to 1

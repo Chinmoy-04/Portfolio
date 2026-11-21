@@ -5,7 +5,7 @@ import { SoundToggle } from "./SoundToggle";
 
 /*
   Always-visible top bar. "View projects" is clickable from the first painted
-  frame and jumps past the hero (PLAN.md, section 7.4).
+  frame and jumps past the hero (docs/PLAN.md, section 7.4).
 */
 export function PinnedNav({ variant = "home" }: { variant?: "home" | "work" }) {
   return (
