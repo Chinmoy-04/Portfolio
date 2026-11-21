@@ -394,7 +394,7 @@ Each phase ends at a checkpoint where you review a running preview before the ne
 - Done 21 Nov 2026: real metrics for six of seven projects (ShopCrew has none yet), fuller stacks, ShopCrew marked solo, German Air's finding from its live site.
 - Done 21 Nov 2026: the one-page CV is live as `public/Chinmoy-Jyoti-Bora-CV.pdf` (CV links in the top bar from 640 px up, in Contact and on `/work`).
 - Done 21 Nov 2026: the portrait is in About as a duotone cut-out (page black through amber to off-white), built by `scripts/portrait.py` from `public/portrait.jpg`. The ASCII version was tried and set aside: at About size it lost the likeness. Section 13 question settled.
-- Still to do: connect Vercel (your action), then the production deploy.
+- Live 21 Nov 2026 at https://chinmoybora.vercel.app (Vercel, deploys on every push to `main`). Left for you: switch on Web Analytics in the Vercel dashboard, and point the GitHub profile README and LinkedIn at the site.
 
 ### Where the effort sits
 
