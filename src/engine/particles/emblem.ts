@@ -26,7 +26,9 @@ export async function loadEmblem(
       return sampleGenerator(emblem.id, count);
     case "text":
       // The canvas falls back to another face silently if the font is not loaded yet.
-      if (fontFamily) await document.fonts.load(`900 160px ${fontFamily}`);
+      // Only the first family is awaited: next/font's fallback face is
+      // local("Arial"), which phones without Arial fail to load, rejecting the call.
+      if (fontFamily) await document.fonts.load(`900 160px ${fontFamily.split(",")[0]}`);
       return sampleText(name, count, { fontFamily, fontStretch, align });
     case "glb":
       throw new Error("GLB emblems are not supported yet");

@@ -126,7 +126,7 @@ export function ParticleDebug({ svgOptions }: { svgOptions: SvgOptions }) {
         { fontFamily: css.getPropertyValue("--font-archivo").trim() },
       );
       const mono = css.getPropertyValue("--font-jetbrains").trim();
-      await document.fonts.load(`500 12px ${mono}`);
+      await document.fonts.load(`500 12px ${mono.split(",")[0]}`);
       if (cancelled) return;
 
       const finePointer = window.matchMedia("(pointer: fine)").matches;

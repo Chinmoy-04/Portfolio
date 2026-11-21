@@ -615,7 +615,8 @@ export function Hero() {
           }),
         ),
       );
-      await document.fonts.load(`500 12px ${mono}`);
+      // Only the web font itself: its local("Arial") fallback fails on Android.
+      await document.fonts.load(`500 12px ${mono.split(",")[0]}`);
       step();
       if (cancelled) return;
 
