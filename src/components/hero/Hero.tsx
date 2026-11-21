@@ -9,7 +9,7 @@ import { domainLabels, heroProjects } from "@/content/projects";
 import { siteConfig } from "@/content/site.config";
 import type { ParticleField } from "@/engine/particles/ParticleField";
 import { sound } from "@/engine/sound";
-import { scrollToElement } from "@/lib/scroll";
+import { getLenis, scrollToElement } from "@/lib/scroll";
 import { enterGate, heroLive, introVariant } from "./intro";
 
 /*
@@ -59,8 +59,8 @@ import { enterGate, heroLive, introVariant } from "./intro";
     after    the counter waits at 100; Enter starts the dissolve
   "Enter" turns sound on, "Enter without sound" turns it off. The click is
   what lets the browser play the opening's sound (engine/sound.ts): a riser
-  under the count and a shimmer under the dissolve. Scrolling past the
-  opening skips the button. While a button is pending (<html data-enter>, set
+  under the count and a shimmer under the dissolve. The page does not scroll
+  until the button is pressed. While a button is pending (<html data-enter>, set
   before first paint) the CSS cap that clears the counter is stretched to
   GATE_CAP_MS, so a page whose script stalls still clears; once the button
   shows, the cap is off.
@@ -399,7 +399,25 @@ export function Hero() {
         barRestRef.current.textContent = ".".repeat(Math.max(0, BAR_CELLS - full - 1));
       }
     };
+    /*
+      While an Enter button is pending the page does not scroll, so the only
+      way on is the button. Lenis takes the wheel itself, so it is stopped too.
+    */
+    let scrollLocked = false;
+    const lockScroll = (on: boolean) => {
+      if (on === scrollLocked) return;
+      scrollLocked = on;
+      const root = document.documentElement;
+      if (on) {
+        getLenis()?.stop();
+        root.style.overflow = "hidden";
+      } else {
+        getLenis()?.start();
+        root.style.removeProperty("overflow");
+      }
+    };
     const finishCounter = () => {
+      lockScroll(false);
       counterDone = true;
       if (fieldReady && !reduce) {
         sound.dissolve();
@@ -434,26 +452,20 @@ export function Hero() {
         return false;
       });
     };
-    /* Shows the Enter buttons and runs `next` once one is pressed, or the visitor scrolls on. */
+    /* Shows the Enter buttons and runs `next` once one is pressed. */
     const waitForEnter = (next: () => void) => {
       const counter = counterRef.current;
       counter?.classList.add("is-gated");
       let waiting = true;
-      const go = () => {
+      enterRef.current = (withSound) => {
         if (!waiting) return;
         waiting = false;
         enterRef.current = null;
         counter?.classList.remove("is-gated");
+        lockScroll(false);
+        sound.choose(withSound);
         next();
       };
-      enterRef.current = (withSound) => {
-        sound.choose(withSound);
-        go();
-      };
-      animate(() => {
-        if (spans > 0.3) go();
-        return waiting;
-      });
     };
     // Past the stretched cap, CSS has cleared the counter already: no button.
     const gate = counterIntro && performance.now() < GATE_CAP_MS ? enterGate() : "none";
@@ -477,6 +489,7 @@ export function Hero() {
       delete root.dataset.hero;
       delete root.dataset.enter;
       root.dataset.intro = "none";
+      lockScroll(false);
       sound.riserStop();
       trigger.kill();
       visibility.disconnect();
@@ -507,6 +520,8 @@ export function Hero() {
       onRefresh: (self) => apply(toSpans(self.progress)),
     });
     apply(toSpans(trigger.progress));
+    // A pending Enter button holds the page at the opening, count included.
+    if (gate !== "none" && !counterDone && spans <= 0.3) lockScroll(true);
 
     // Render only while the sticky layer is on screen. The first report usually
     // arrives before the field exists, so it is kept and applied once it does.
@@ -623,6 +638,7 @@ export function Hero() {
       // data-enter belongs to the pre-paint script, so it stays for the next mount.
       counter?.classList.remove("is-gated");
       enterRef.current = null;
+      lockScroll(false);
       sound.riserStop();
       trigger.kill();
       visibility.disconnect();
