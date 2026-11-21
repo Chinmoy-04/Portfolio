@@ -245,6 +245,24 @@ export const projects: Project[] = [
       accentRegion: "states",
     },
   },
+  {
+    slug: "bottle-inspection",
+    name: "Industrial Bottle Inspection",
+    oneLine:
+      "Reusable or not: a bottle classifier for returnable-bottle lines, built for the 1st Krones Vision AI Challenge on Kaggle.",
+    year: 2026,
+    domain: "vision",
+    summary:
+      "A binary classifier that decides whether a bottle on a conveyor is reusable. Each frame is cropped to the bottle's annotated region, then scored by an ensemble of two backbones, with the decision threshold tuned for F1 rather than fixed at 0.5.",
+    highlights: [
+      "ConvNeXt-Large and EfficientNetV2-M trained over stratified folds with EMA, MixUp/CutMix and a soft-target focal loss.",
+      "Out-of-fold probabilities set the ensemble threshold; inference averages 12 TTA views across every checkpoint.",
+      "Fit to Kaggle's 12-hour GPU budget for training, inference and ONNX export, with pause and resume for long local runs.",
+    ],
+    // The repo ships code only; no leaderboard or validation scores are published.
+    stack: ["Python", "PyTorch", "timm", "ConvNeXt", "EfficientNetV2", "ONNX", "Ultralytics YOLO"],
+    links: { repo: "https://github.com/Chinmoy-04/Industrial-Bottle-Inspection-System-Binary-" },
+  },
 ];
 
 /** Projects that get a hero chapter, in order. */
