@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run check:projects",
     "build": "next build",
+    "check:projects": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-projects.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "playwright test"

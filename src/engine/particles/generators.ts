@@ -294,16 +294,19 @@ const knowledgeGraph: Generator = (count, rng) => {
   );
 };
 
-export const generators: Record<string, Generator> = {
+export const generators = {
   "agent-graph": agentGraph,
   "score-gauge": scoreGauge,
   "score-radar": scoreRadar,
   "hand-skeleton": handSkeleton,
   "knowledge-graph": knowledgeGraph,
-};
+} satisfies Record<string, Generator>;
+
+/** Ids a project's `{ kind: "generator" }` emblem may name. */
+export type GeneratorId = keyof typeof generators;
 
 export function sampleGenerator(id: string, count: number, seed = 1): Cloud {
-  const generate = generators[id];
+  const generate = (generators as Record<string, Generator>)[id];
   if (!generate) throw new Error(`Unknown emblem generator "${id}"`);
   return generate(count, makeRng(seed));
 }

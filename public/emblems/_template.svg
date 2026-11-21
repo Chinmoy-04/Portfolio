@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!--
+    Emblem template. Copy to public/emblems/<slug>.svg and draw over it.
+    - Keep the viewBox square. The particles fill solid shapes and thick strokes.
+    - Draw the shape in #e9eaec, filled or with strokes at least 6 wide.
+    - Put the part that should glow inside one element with an id, and set
+      the project's hero.accentRegion to that id ("accent" here).
+    - Leave a margin of about 10 on each side.
+  -->
+  <rect x="40" y="40" width="120" height="120" rx="16" fill="#e9eaec" />
+  <g id="accent" fill="#ffb020">
+    <circle cx="150" cy="50" r="14" />
+  </g>
+</svg>

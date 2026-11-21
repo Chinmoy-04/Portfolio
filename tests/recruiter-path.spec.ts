@@ -1,4 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { heroProjects, projects } from "../src/content/projects";
+
+const firstChapter = heroProjects[0];
+const lastChapter = heroProjects[heroProjects.length - 1];
 
 test("View projects in the top bar reaches the project list", async ({ page }) => {
   await page.goto("/");
@@ -63,7 +67,7 @@ test("/work shows every project open", async ({ page }) => {
   await page.goto("/work");
   await expect(page.getByRole("heading", { name: "Chinmoy Jyoti Bora", level: 1 })).toBeVisible();
   const regions = page.getByRole("region", { name: / details$/ });
-  await expect(regions).toHaveCount(7);
+  await expect(regions).toHaveCount(projects.length);
   for (const region of await regions.all()) {
     await expect(region).toHaveAttribute("data-open", "true");
   }
@@ -83,9 +87,9 @@ test("the hero has one chapter per project, each linking to its row", async ({ p
   await page.goto("/");
   const hero = page.getByRole("region", { name: "Introduction" });
   const links = hero.getByRole("link", { name: "Read the project" });
-  await expect(links).toHaveCount(7);
-  await expect(links.first()).toHaveAttribute("href", "#p-subspacead");
-  await expect(links.last()).toHaveAttribute("href", "#p-german-air");
+  await expect(links).toHaveCount(heroProjects.length);
+  await expect(links.first()).toHaveAttribute("href", `#p-${firstChapter.slug}`);
+  await expect(links.last()).toHaveAttribute("href", `#p-${lastChapter.slug}`);
 });
 
 test("?intro= picks the opening, and the counter clears by its cap", async ({ page }) => {
@@ -152,10 +156,12 @@ test("the Enter button comes right after the top bar in tab order", async ({ pag
 
 test("every project has a heading and a distinct hero link", async ({ page }) => {
   await page.goto("/work");
-  await expect(page.getByRole("heading", { level: 3 })).toHaveCount(7);
+  await expect(page.getByRole("heading", { level: 3 })).toHaveCount(projects.length);
   await page.goto("/");
   await expect(
     page.getByRole("heading", { name: "Chinmoy Jyoti Bora", exact: true, level: 1 }),
   ).toBeAttached();
-  await expect(page.getByRole("link", { name: "Read the project: German Air" })).toHaveCount(1);
+  await expect(
+    page.getByRole("link", { name: `Read the project: ${lastChapter.name}` }),
+  ).toHaveCount(1);
 });

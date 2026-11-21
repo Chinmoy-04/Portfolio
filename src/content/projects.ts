@@ -5,20 +5,42 @@
   from the `projects` array below. Order in the array is order on the site.
 
   To add a project:
-    1. Add one entry to the array.
-    2. For a hero chapter, add a `hero` block. `{ kind: "text" }` needs no
-       artwork: the particles form the project's name.
-    3. For a custom emblem, put an SVG in public/emblems/ and point `src` at it.
+    1. Copy the template below into the array.
+    2. For a hero chapter, keep the `hero` block; delete it to list the
+       project only. `{ kind: "text" }` needs no artwork: the particles form
+       the project's name.
+    3. For a custom emblem, copy public/emblems/_template.svg to
+       public/emblems/<slug>.svg, draw it, and point `src` at it.
+    4. Run `npm run check:projects` (it also runs before every build).
 
   Only real numbers go in `metrics`. Leave it out until you have them.
+
+  Template:
+
+  {
+    slug: "my-project",
+    name: "My Project",
+    oneLine: "One sentence on what it does.",
+    year: 2026,
+    domain: "vision",
+    summary: "Two to four sentences.",
+    stack: ["Python"],
+    links: { repo: "https://github.com/Chinmoy-04/my-project" },
+    hero: {
+      emblem: { kind: "svg", src: "/emblems/my-project.svg" },
+      accentRegion: "accent",
+    },
+  },
 */
+
+import type { GeneratorId } from "@/engine/particles/generators";
 
 export type ProjectDomain = "agents" | "vision" | "rag" | "data";
 
 export type Emblem =
   | { kind: "svg"; src: string; depth?: number }
   | { kind: "glb"; src: string }
-  | { kind: "generator"; id: string }
+  | { kind: "generator"; id: GeneratorId }
   | { kind: "text" };
 
 export type Project = {

@@ -88,11 +88,21 @@ tests/                  Playwright recruiter-path tests
 
 Everything about a project lives in one typed entry in `src/content/projects.ts`. The hero chapters, the project list, `/work` and the progress rail all read from it.
 
-1. Add an entry to the `projects` array. Its position is its position on the site.
-2. To give it a hero chapter, add a `hero` block. `{ kind: "text" }` needs no artwork: the particles form the project's name.
-3. For a custom emblem, put an SVG in `public/emblems/` and point `src` at it.
+1. Copy the template from the comment at the top of `projects.ts` into the `projects` array. Its position is its position on the site.
+2. To give it a hero chapter, keep the `hero` block; delete it to list the project only. `{ kind: "text" }` needs no artwork: the particles form the project's name.
+3. For a custom emblem, copy `public/emblems/_template.svg` to `public/emblems/<slug>.svg`, draw it, and point `src` at it.
+4. Run `npm run check:projects`. It also runs before every build.
 
 Chapter count, scroll length and the rail all follow automatically.
+
+Emblem SVG rules:
+
+- The `viewBox` must be square.
+- Draw the shape in `#e9eaec`, as filled shapes or strokes at least 6 units wide; the particles sample what is painted.
+- Wrap the part that should glow in one element with an `id`, and set `hero.accentRegion` to that id.
+- Generator emblems (`{ kind: "generator", id }`) are drawn in code in `src/engine/particles/generators.ts`; the id is type-checked.
+
+The check fails on a duplicate slug, a missing SVG, a non-square `viewBox`, or an `accentRegion` with no matching id. Spare emblems kept for comparison go in `public/emblems/options/<slug>-<name>.svg`; `/debug/particles` lists them on its own.
 
 ---
 

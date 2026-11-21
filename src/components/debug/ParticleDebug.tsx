@@ -1,26 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { type Emblem, heroProjects, type Project } from "@/content/projects";
 import { type AsciiSettings, DEFAULT_ASCII } from "@/engine/ascii/AsciiPass";
 import type { ParticleField, ParticleStats } from "@/engine/particles/ParticleField";
 
 /*
   Alternative emblems per project slug, kept so a project can switch later.
-  SVG options live in public/emblems/options/<slug>-<option>.svg; generator
-  options are ids from engine/particles/generators.ts. Each uses the same
-  accent as the project's current emblem.
+  SVG options are found in public/emblems/options/<slug>-<option>.svg by the
+  page; generator options are ids from engine/particles/generators.ts. Each
+  uses the same accent as the project's current emblem.
 */
-const OPTIONS: Record<string, string[]> = {
-  subspacead: ["bottle", "screw", "patches"],
-  shopcrew: ["bag", "grid", "store"],
-  paintops: ["sedan", "suv", "front"],
-  "rag-eval-engine": ["bars", "radar", "page"],
-  "air-gesture-controller": ["swipe", "pi"],
-  "lightrag-local": ["tree", "laptop", "rings"],
-  "german-air": ["outline", "lungs", "chart"],
-};
-
 const GENERATOR_OPTIONS: Record<string, string[]> = {
   "rag-eval-engine": ["score-gauge"],
   "air-gesture-controller": ["hand-skeleton"],
@@ -28,27 +18,29 @@ const GENERATOR_OPTIONS: Record<string, string[]> = {
 
 type Choice = { id: string; label: string; project: Project; emblem: Emblem };
 
-const GROUPS: { project: Project; choices: Choice[] }[] = heroProjects.map((project) => ({
-  project,
-  choices: [
-    { id: `${project.slug}:current`, label: "Current", project, emblem: project.hero!.emblem },
-    ...(OPTIONS[project.slug] ?? []).map((option) => ({
-      id: `${project.slug}:${option}`,
-      label: `Option: ${option}`,
-      project,
-      emblem: { kind: "svg", src: `/emblems/options/${project.slug}-${option}.svg` } as Emblem,
-    })),
-    ...(GENERATOR_OPTIONS[project.slug] ?? []).map((id) => ({
-      id: `${project.slug}:${id}`,
-      label: `Generator: ${id}`,
-      project,
-      emblem: { kind: "generator", id } as Emblem,
-    })),
-    { id: `${project.slug}:text`, label: "Text fallback", project, emblem: { kind: "text" } },
-  ],
-}));
+/** SVG option names per project slug */
+export type SvgOptions = Record<string, string[]>;
 
-const CHOICES = GROUPS.flatMap((g) => g.choices);
+const buildGroups = (svgOptions: SvgOptions): { project: Project; choices: Choice[] }[] =>
+  heroProjects.map((project) => ({
+    project,
+    choices: [
+      { id: `${project.slug}:current`, label: "Current", project, emblem: project.hero!.emblem },
+      ...(svgOptions[project.slug] ?? []).map((option) => ({
+        id: `${project.slug}:${option}`,
+        label: `Option: ${option}`,
+        project,
+        emblem: { kind: "svg", src: `/emblems/options/${project.slug}-${option}.svg` } as Emblem,
+      })),
+      ...(GENERATOR_OPTIONS[project.slug] ?? []).map((id) => ({
+        id: `${project.slug}:${id}`,
+        label: `Generator: ${id}`,
+        project,
+        emblem: { kind: "generator", id } as Emblem,
+      })),
+      { id: `${project.slug}:text`, label: "Text fallback", project, emblem: { kind: "text" } },
+    ],
+  }));
 
 type NumberKey = {
   [K in keyof AsciiSettings]: AsciiSettings[K] extends number ? K : never;
@@ -92,16 +84,18 @@ const CHARSETS: { label: string; chars: string }[] = [
   quality tier. The three.js engine is imported on demand, so it lands in its
   own chunk.
 */
-export function ParticleDebug() {
+export function ParticleDebug({ svgOptions }: { svgOptions: SvgOptions }) {
+  const groups = useMemo(() => buildGroups(svgOptions), [svgOptions]);
+  const choices = useMemo(() => groups.flatMap((g) => g.choices), [groups]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fieldRef = useRef<ParticleField | null>(null);
   const progressRef = useRef(0);
   const [progress, setProgress] = useState(0);
-  const [emblemId, setEmblemId] = useState(CHOICES[0].id);
-  const choice = CHOICES.find((c) => c.id === emblemId)!;
+  const [emblemId, setEmblemId] = useState(choices[0].id);
+  const choice = choices.find((c) => c.id === emblemId)!;
   const step = (by: number) => {
-    const i = CHOICES.findIndex((c) => c.id === emblemId);
-    setEmblemId(CHOICES[(i + by + CHOICES.length) % CHOICES.length].id);
+    const i = choices.findIndex((c) => c.id === emblemId);
+    setEmblemId(choices[(i + by + choices.length) % choices.length].id);
   };
   const [stats, setStats] = useState<ParticleStats | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +119,7 @@ export function ParticleDebug() {
       const tier = isTier(forced) ? forced : detectTier();
 
       const css = getComputedStyle(document.documentElement);
-      const { emblem, project } = CHOICES.find((c) => c.id === emblemId)!;
+      const { emblem, project } = choices.find((c) => c.id === emblemId)!;
       const cloud = await loadEmblem(
         { emblem, name: project.name, accentRegion: project.hero?.accentRegion },
         TIERS[tier].particles,
@@ -159,7 +153,7 @@ export function ParticleDebug() {
       field?.dispose();
       fieldRef.current = null;
     };
-  }, [emblemId]);
+  }, [emblemId, choices]);
 
   const updateAscii = (next: AsciiSettings | null) => {
     asciiRef.current = next;
@@ -286,7 +280,7 @@ export function ParticleDebug() {
               onChange={(e) => setEmblemId(e.target.value)}
               className="border-line bg-bg text-text border px-2 py-1"
             >
-              {GROUPS.map((g) => (
+              {groups.map((g) => (
                 <optgroup key={g.project.slug} label={g.project.name}>
                   {g.choices.map((c) => (
                     <option key={c.id} value={c.id}>
