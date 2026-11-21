@@ -8,8 +8,8 @@ type Rect = { left: number; top: number; width: number; height: number };
 /*
   The quiet ASCII field behind Projects, About and Stack (asciify-engine,
   MIT). It fills the viewport behind this region, never reacts to the
-  pointer, and goes quiet right behind every element marked data-field-clear
-  so text always sits on calm ground.
+  pointer, and goes quiet right behind each line of text inside elements
+  marked data-field-clear, so text always sits on calm ground.
 
   The library itself pauses off screen, holds a still frame under reduced
   motion, and leaves the page untouched without WebGL2.
@@ -32,15 +32,28 @@ export function QuietField({ regionRef }: { regionRef: React.RefObject<HTMLEleme
     });
     observer.observe(region);
 
+    // One rect per line of text, so the field keeps flowing between lines
+    // and rows instead of going quiet over whole blocks.
+    const range = document.createRange();
     const rects = () => {
       const key = `${window.scrollY}|${window.innerWidth}|${window.innerHeight}|${layoutVersion}`;
       if (key === cacheKey) return cache;
       cacheKey = key;
       const next: Rect[] = [];
       region.querySelectorAll<HTMLElement>("[data-field-clear]").forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > window.innerHeight || r.width === 0) return;
-        next.push({ left: r.left, top: r.top, width: r.width, height: r.height });
+        // A closed project panel is clipped to nothing; its text is not shown.
+        if (el.closest("[data-open='false']")) return;
+        const box = el.getBoundingClientRect();
+        if (box.bottom < 0 || box.top > window.innerHeight || box.width === 0) return;
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          if (!node.textContent?.trim()) continue;
+          range.selectNodeContents(node);
+          for (const r of range.getClientRects()) {
+            if (r.bottom < 0 || r.top > window.innerHeight) continue;
+            next.push({ left: r.left, top: r.top, width: r.width, height: r.height });
+          }
+        }
       });
       cache = next;
       return cache;
@@ -60,8 +73,8 @@ export function QuietField({ regionRef }: { regionRef: React.RefObject<HTMLEleme
           cursor: false,
           opacity: 0.55,
           clear: rects,
-          clearPadding: 18,
-          clearSoftness: 48,
+          clearPadding: 6,
+          clearSoftness: 20,
           clearStrength: 0.95,
         });
       })
