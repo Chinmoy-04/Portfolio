@@ -13,8 +13,32 @@ export const profile = {
     "I build AI agents and agentic process automation, train compact vision models for real hardware, and turn messy data into systems you can query, evaluate and trust.",
     "My work runs from human-in-the-loop agent workflows to YOLO on a Raspberry Pi and retrieval pipelines that are scored, not guessed.",
   ],
-  education:
-    "Dual-degree M.Sc. in AI and Data Science, TH Deggendorf and University of South Bohemia.",
+  /** Newest first. `to: null` marks the current one, drawn in the accent colour. */
+  education: [
+    {
+      from: "Mar 2026",
+      to: null,
+      degree: "M.Sc. Artificial Intelligence and Data Science",
+      school: "TH Deggendorf, Germany",
+      note: "Dual degree with the University of South Bohemia, Czech Republic",
+      focus: "Machine learning, data engineering, AI systems",
+    },
+    {
+      from: "Sep 2021",
+      to: "Apr 2024",
+      degree: "B.Sc. Information Technology",
+      school: "St. Xavier's College, Mumbai (University of Mumbai), India",
+      note: null,
+      focus: "AI, cloud computing, big data, data mining, network security",
+    },
+  ] as {
+    from: string;
+    to: string | null;
+    degree: string;
+    school: string;
+    note: string | null;
+    focus: string;
+  }[],
 
   links: {
     email: "chinmoy.bora177@gmail.com",

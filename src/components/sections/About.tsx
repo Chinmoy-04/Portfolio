@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { profile } from "@/content/profile";
+import { Education } from "./Education";
 
 /*
   The portrait (a duotone cut-out made by scripts/portrait.py, chosen
@@ -36,14 +37,12 @@ export function About() {
           <dd className="mt-2">{profile.openTo.replace(/^Looking for /, "").replace(/\.$/, "")}</dd>
         </div>
         <div>
-          <dt className="type-label text-dim">Studying</dt>
-          <dd className="mt-2">{profile.education.replace(/\.$/, "")}</dd>
-        </div>
-        <div>
           <dt className="type-label text-dim">Based in</dt>
           <dd className="mt-2">{profile.location}</dd>
         </div>
       </dl>
+
+      <Education />
     </section>
   );
 }
