@@ -8,7 +8,7 @@ export type AccentName = "amber" | "green" | "blue";
 
 export const siteConfig = {
   /** Public address. Update when a custom domain is attached. */
-  url: "https://chinmoy.vercel.app",
+  url: "https://chinmoybora.vercel.app",
 
   /** Accent colour. Locked to amber on 17 Nov 2026 (Phase 0 checkpoint). */
   accent: "amber" as AccentName,
