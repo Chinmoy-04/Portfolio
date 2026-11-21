@@ -11,7 +11,7 @@ const SECTIONS = [
 
 /* Section links that mark the section currently in view. */
 export function SectionNav() {
-  const [active, setActive] = useState<string>("projects");
+  const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
     const targets = SECTIONS.map((s) => document.getElementById(s.id)).filter(
@@ -21,6 +21,10 @@ export function SectionNav() {
       (entries) => {
         const visible = entries.filter((e) => e.isIntersecting);
         if (visible.length > 0) setActive(visible[0].target.id);
+        // Above the first section (the hero): no section is current.
+        else if (entries.some((e) => e.target === targets[0] && e.boundingClientRect.top > 0)) {
+          setActive(null);
+        }
       },
       // A thin band a third of the way down the viewport decides the active section.
       { rootMargin: "-33% 0px -66% 0px" },

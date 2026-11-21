@@ -11,7 +11,9 @@
   key (scrolling does not count), so until the audio is actually running,
   every such gesture tries again. The opening's Enter button (Hero.tsx) is
   that gesture, so the opening can have sound:
-    riser     a soft tone that climbs with the loading counter
+    riser     a soft tone that climbs with the loading counter. Only heard
+              when the click comes before the count (enterGate "before") or
+              the visitor clicked or pressed a key during it.
     dissolve  a falling shimmer and a low chord as the digits turn to particles
 */
 
@@ -42,6 +44,8 @@ class Sound {
   private gather = 0;
   private presence = 0;
   private started = false;
+  /** Gesture listeners are in place (waitForGesture) */
+  private waiting = false;
 
   /** Reads the remembered choice. Call once on the client. */
   start() {
@@ -200,6 +204,9 @@ class Sound {
 
   /** Retries starting the audio on every gesture until it is running. */
   private waitForGesture() {
+    // Turning sound off and on again before a gesture keeps the one set.
+    if (this.waiting) return;
+    this.waiting = true;
     const unlock = () => {
       if (!this.on) return stop();
       this.ensureContext();
@@ -207,7 +214,10 @@ class Sound {
       // resume() settles after the gesture, so check again once it has.
       else void this.ctx?.resume().then(() => this.ctx?.state === "running" && stop());
     };
-    const stop = () => GESTURES.forEach((e) => window.removeEventListener(e, unlock, true));
+    const stop = () => {
+      this.waiting = false;
+      GESTURES.forEach((e) => window.removeEventListener(e, unlock, true));
+    };
     GESTURES.forEach((e) => window.addEventListener(e, unlock, true));
   }
 

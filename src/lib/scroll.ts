@@ -11,6 +11,8 @@ import type Lenis from "lenis";
 */
 
 let instance: Lenis | null = null;
+/** Set while something holds the page still (the hero's Enter button); lifts it. */
+let hold: (() => void) | null = null;
 
 export function setLenis(lenis: Lenis | null) {
   instance = lenis;
@@ -20,7 +22,13 @@ export function getLenis() {
   return instance;
 }
 
+/** A scroll request lifts the hold first, so a link never lands on a frozen page. */
+export function setScrollHold(release: (() => void) | null) {
+  hold = release;
+}
+
 export function scrollToElement(el: HTMLElement, { immediate = false } = {}) {
+  hold?.();
   if (instance) {
     instance.scrollTo(el, { immediate });
   } else {

@@ -15,8 +15,37 @@ const GATES: EnterGate[] = ["before", "after", "none"];
  *    button (?enter= or siteConfig.enterGate). CSS then stretches the counter's
  *    safety cap, so a slow page still gets its button. Never set on phones,
  *    which have no sound and so no need for the click.
+ *
+ * Self-contained, because it is also sent as text (introScript).
  */
-export const introScript = `(function(){var q=new URLSearchParams(location.search),d=document.documentElement,live=!!window.WebGL2RenderingContext&&q.get("webgl")!=="0",v=q.get("intro");if(live)d.dataset.hero="live";if(!live||${JSON.stringify(VARIANTS)}.indexOf(v)<0)v=live?${JSON.stringify(siteConfig.intro)}:"none";d.dataset.intro=v;var g=q.get("enter");if(${JSON.stringify(GATES)}.indexOf(g)<0)g=${JSON.stringify(siteConfig.enterGate)};if(matchMedia("(max-width:639px)").matches)g="none";if(v=="counter"&&g!=="none")d.dataset.enter=g})()`;
+function pickIntro(variants: string[], gates: string[], intro: string, gate: string) {
+  const q = new URLSearchParams(location.search);
+  const d = document.documentElement;
+  const live = !!window.WebGL2RenderingContext && q.get("webgl") !== "0";
+  let v = q.get("intro") ?? "";
+  if (live) d.dataset.hero = "live";
+  if (!live || variants.indexOf(v) < 0) v = live ? intro : "none";
+  d.dataset.intro = v;
+  let g = q.get("enter") ?? "";
+  if (gates.indexOf(g) < 0) g = gate;
+  if (matchMedia("(max-width:639px)").matches) g = "none";
+  if (v === "counter" && g !== "none") d.dataset.enter = g;
+}
+
+const pickArgs = (intro: IntroVariant, gate: EnterGate) =>
+  [VARIANTS, GATES, intro, gate].map((a) => JSON.stringify(a)).join(",");
+
+export const introScript = `(${pickIntro.toString()})(${pickArgs(siteConfig.intro, siteConfig.enterGate)})`;
+
+/**
+ * Client navigation into the home page does not run inline scripts, so the
+ * attributes were never set and the hero would fall back to static. Picks
+ * them now, without an opening: that is for the first load only.
+ */
+export function ensureIntro() {
+  if (document.documentElement.dataset.intro !== undefined) return;
+  pickIntro(VARIANTS, GATES, "none", "none");
+}
 
 /** The opening picked by introScript. Client only. */
 export function introVariant(): IntroVariant {

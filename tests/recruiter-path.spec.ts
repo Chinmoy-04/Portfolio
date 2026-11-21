@@ -119,7 +119,8 @@ test("without WebGL the hero is just the name, then the project list", async ({ 
   expect(projectsTop).toBeLessThan(1.5);
 });
 
-test("the Enter button holds the counter until pressed", async ({ page }) => {
+test("the Enter button holds the counter until pressed", async ({ page, isMobile }) => {
+  test.skip(isMobile, "phones have no Enter button");
   for (const enter of ["before", "after"]) {
     await page.goto(`/?intro=counter&enter=${enter}`);
     const button = page.getByRole("button", { name: "Enter", exact: true });
@@ -164,4 +165,29 @@ test("every project has a heading and a distinct hero link", async ({ page }) =>
   await expect(
     page.getByRole("link", { name: `Read the project: ${lastChapter.name}` }),
   ).toHaveCount(1);
+});
+
+test("View projects while the Enter button waits skips the opening", async ({ page, isMobile }) => {
+  test.skip(isMobile, "phones have no Enter button");
+  await page.goto("/?intro=counter&enter=after");
+  await expect(page.getByRole("button", { name: "Enter", exact: true })).toBeVisible({
+    timeout: 12_000,
+  });
+  await page
+    .getByRole("navigation", { name: "Primary" })
+    .getByRole("link", { name: "View projects" })
+    .click();
+  await expect(page.getByRole("heading", { name: "Projects", level: 2 })).toBeInViewport();
+  await expect(page.locator(".intro-counter")).toBeHidden();
+});
+
+test("coming home from /work keeps the live hero", async ({ page }) => {
+  await page.goto("/work");
+  await page
+    .getByRole("navigation", { name: "Primary" })
+    .getByRole("link", { name: "Full site" })
+    .click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator("html")).toHaveAttribute("data-hero", "live");
+  await expect(page.locator(".intro-counter")).toBeHidden();
 });

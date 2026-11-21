@@ -41,7 +41,11 @@ export function ProjectList({ projects, expandAll = false }: Props) {
       const row = openFromHash();
       frame = requestAnimationFrame(() => scrollTo(row));
     });
-    const onHashChange = () => scrollTo(openFromHash());
+    const onHashChange = () => {
+      // Back to the bare page: the row opened from the hash closes with it.
+      if (!window.location.hash) setOpenSlug(null);
+      else scrollTo(openFromHash());
+    };
     window.addEventListener("hashchange", onHashChange);
     return () => {
       clearTimeout(timer);

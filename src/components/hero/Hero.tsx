@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AsciiSample } from "@/components/specimen/AsciiSample";
@@ -9,8 +9,8 @@ import { domainLabels, heroProjects } from "@/content/projects";
 import { siteConfig } from "@/content/site.config";
 import type { ParticleField } from "@/engine/particles/ParticleField";
 import { sound } from "@/engine/sound";
-import { getLenis, scrollToElement } from "@/lib/scroll";
-import { enterGate, heroLive, introVariant } from "./intro";
+import { getLenis, scrollToElement, setScrollHold } from "@/lib/scroll";
+import { ensureIntro, enterGate, heroLive, introVariant } from "./intro";
 
 /*
   The hero (PLAN.md, section 7.4). One tall section with a sticky layer that
@@ -57,10 +57,14 @@ import { enterGate, heroLive, introVariant } from "./intro";
   The counter can wait on an Enter button (siteConfig.enterGate, ?enter=):
     before   the counter shows 0 and waits; Enter starts the count
     after    the counter waits at 100; Enter starts the dissolve
-  "Enter" turns sound on, "Enter without sound" turns it off. The click is
-  what lets the browser play the opening's sound (engine/sound.ts): a riser
-  under the count and a shimmer under the dissolve. The page does not scroll
-  until the button is pressed. While a button is pending (<html data-enter>, set
+  "Enter" turns sound on, "Enter without sound" turns it off (both only with
+  siteConfig.features.sound). The click is what lets the browser play the
+  opening's sound (engine/sound.ts): a shimmer under the dissolve, and with
+  "before" a riser under the count. With "after" the click comes at 100, so
+  the riser only plays if the visitor clicked or pressed a key during the
+  count. The page does not scroll until the button is pressed, unless a link
+  or a scroll request (lib/scroll.ts) goes somewhere else on the page, or the
+  page opens on a #hash: then the opening finishes without asking. While a button is pending (<html data-enter>, set
   before first paint) the CSS cap that clears the counter is stretched to
   GATE_CAP_MS, so a page whose script stalls still clears; once the button
   shows, the cap is off.
@@ -135,6 +139,9 @@ export function Hero() {
   const tickRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   /** Set by the effect while the Enter button waits; true means with sound */
   const enterRef = useRef<((withSound: boolean) => void) | null>(null);
+
+  // Before paint, so a client navigation home does not flash the static layout.
+  useLayoutEffect(ensureIntro, []);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -408,6 +415,8 @@ export function Hero() {
       if (on === scrollLocked) return;
       scrollLocked = on;
       const root = document.documentElement;
+      // Any scroll request (top bar, skip link, a #p- row) lifts the hold first.
+      setScrollHold(on ? skipGate : null);
       if (on) {
         getLenis()?.stop();
         root.style.overflow = "hidden";
@@ -419,6 +428,9 @@ export function Hero() {
     const finishCounter = () => {
       lockScroll(false);
       counterDone = true;
+      // The gate is passed for this visit: a later mount (client navigation
+      // back home) must not ask again.
+      delete document.documentElement.dataset.enter;
       if (fieldReady && !reduce) {
         sound.dissolve();
         dissolveCounter();
@@ -452,28 +464,49 @@ export function Hero() {
         return false;
       });
     };
+    /* What runs once the visible Enter button is pressed, or null when none is shown. */
+    let pending: (() => void) | null = null;
+    const proceed = () => {
+      const next = pending;
+      if (!next) return;
+      pending = null;
+      enterRef.current = null;
+      counterRef.current?.classList.remove("is-gated");
+      lockScroll(false);
+      next();
+    };
     /* Shows the Enter buttons and runs `next` once one is pressed. */
     const waitForEnter = (next: () => void) => {
-      const counter = counterRef.current;
-      counter?.classList.add("is-gated");
-      let waiting = true;
+      counterRef.current?.classList.add("is-gated");
+      pending = next;
       enterRef.current = (withSound) => {
-        if (!waiting) return;
-        waiting = false;
-        enterRef.current = null;
-        counter?.classList.remove("is-gated");
-        lockScroll(false);
-        sound.choose(withSound);
-        next();
+        if (!pending) return;
+        if (siteConfig.features.sound) sound.choose(withSound);
+        proceed();
       };
     };
+    /*
+      The visitor went somewhere else on the page (a link, a deep link, a
+      keyboard jump): the opening stops waiting and finishes without asking.
+      Sound keeps its remembered setting.
+    */
+    const skipGate = () => {
+      gate = "none";
+      proceed();
+      lockScroll(false);
+    };
     // Past the stretched cap, CSS has cleared the counter already: no button.
-    const gate = counterIntro && performance.now() < GATE_CAP_MS ? enterGate() : "none";
+    // A link to somewhere on the page (#p-<slug>, #projects) skips it too.
+    const hash = window.location.hash.slice(1);
+    const hashTarget = hash ? document.getElementById(decodeURIComponent(hash)) : null;
+    const deepLink = hashTarget !== null && hashTarget !== section;
+    let gate = counterIntro && !deepLink && performance.now() < GATE_CAP_MS ? enterGate() : "none";
     if (gate === "none") delete document.documentElement.dataset.enter;
-    if (!counterDone) {
-      if (gate === "before") waitForEnter(() => runCounter(performance.now()));
-      else runCounter(0);
-    }
+    // A native anchor jump (touch, no Lenis) never calls scrollToElement.
+    const onHashChange = () => {
+      if (scrollLocked || pending) skipGate();
+    };
+    window.addEventListener("hashchange", onHashChange);
 
     /*
       The field failed to start or lost its context: switch to the static hero
@@ -489,6 +522,8 @@ export function Hero() {
       delete root.dataset.hero;
       delete root.dataset.enter;
       root.dataset.intro = "none";
+      pending = null;
+      enterRef.current = null;
       lockScroll(false);
       sound.riserStop();
       trigger.kill();
@@ -520,6 +555,12 @@ export function Hero() {
       onRefresh: (self) => apply(toSpans(self.progress)),
     });
     apply(toSpans(trigger.progress));
+    // Started once the scroll position is known: a page that opens past the
+    // opening (restored scroll) gets no button, whichever gate is set.
+    if (!counterDone) {
+      if (gate === "before" && spans <= 0.3) waitForEnter(() => runCounter(performance.now()));
+      else runCounter(0);
+    }
     // A pending Enter button holds the page at the opening, count included.
     if (gate !== "none" && !counterDone && spans <= 0.3) lockScroll(true);
 
@@ -631,6 +672,7 @@ export function Hero() {
     return () => {
       cancelled = true;
       canvas.removeEventListener("webglcontextlost", onContextLost);
+      window.removeEventListener("hashchange", onHashChange);
       delete document.documentElement.dataset.nameLive;
       delete document.documentElement.dataset.nameFormed;
       delete document.documentElement.dataset.introRevealed;
@@ -709,13 +751,15 @@ export function Hero() {
               >
                 Enter
               </button>
-              <button
-                type="button"
-                onClick={() => enterRef.current?.(false)}
-                className="btn btn-ghost btn-lg max-sm:hidden!"
-              >
-                Enter without sound
-              </button>
+              {siteConfig.features.sound && (
+                <button
+                  type="button"
+                  onClick={() => enterRef.current?.(false)}
+                  className="btn btn-ghost btn-lg max-sm:hidden!"
+                >
+                  Enter without sound
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -66,9 +66,15 @@ export function Cursor() {
       show(true);
       setState(e.target as Element);
     };
-    const onDown = () => (frame.dataset.press = "true");
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") frame.dataset.press = "true";
+    };
     const onUp = () => delete frame.dataset.press;
-    const onLeave = () => show(false);
+    // A button released outside the window sends no pointerup here.
+    const onLeave = () => {
+      show(false);
+      delete frame.dataset.press;
+    };
 
     // Scrolling moves the page under a still pointer, so re-check what is
     // under it whenever the scroll position changes.

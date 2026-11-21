@@ -348,7 +348,9 @@ export class ParticleField {
     if (!this.options.still) this.material.uniforms.uTime.value = (now - this.start) / 1000;
     if (this.printing) this.ascii!.render(this.scene, this.camera, dt);
     else this.renderer.render(this.scene, this.camera);
-    this.monitor.tick(now);
+    // Still frames draw only when something changed, so their rate says how
+    // often the owner scrolls, not how fast the device is: no quality drop.
+    if (!this.options.still) this.monitor.tick(now);
 
     if (this.options.onStats && now - this.lastStats > 500) {
       this.lastStats = now;
